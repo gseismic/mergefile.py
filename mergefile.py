@@ -69,7 +69,7 @@ def _write_xml_format(out_f, input_files, header):
 
 def _write_markdown_format(out_f, input_files, header):
     """写入Markdown格式"""
-    out_f.write('# 文件说明\n\n')
+    out_f.write('# 说明\n\n')
     
     # 添加自定义头部
     if header:
