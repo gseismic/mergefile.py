@@ -1,6 +1,7 @@
 # MergeFile
 
-一个强大的文件合并工具，可以将多个文件合并为XML或Markdown格式，特别适合为大语言模型（LLM）准备输入文档。
+一个简单的文件合并工具，可以将多个文件合并为XML或Markdown格式，特别适合为大语言模型（LLM）准备输入文档。
+（all by LLM)
 
 ## 特性
 
@@ -17,7 +18,7 @@
 ### 从源码安装
 
 ```bash
-git clone <repository-url>
+git clone (https://github.com/gseismic/mergefile.py)
 cd mergefile.py
 pip install .
 ```
