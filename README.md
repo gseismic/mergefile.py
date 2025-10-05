@@ -17,7 +17,7 @@
 ### 从源码安装
 
 ```bash
-git clone <repository-url>
+git clone (https://github.com/gseismic/mergefile.py)
 cd mergefile.py
 pip install .
 ```
