@@ -11,6 +11,10 @@ def merge_files(input_files, output_file, header=None, format_type='xml'):
     :param header: 自定义头部注释
     :param format_type: 输出格式 ('xml' 或 'markdown')
     """
+    # output_file 不能和 input_files 中的任何一个文件路径相同
+    if output_file in input_files:
+        raise ValueError("output_file 不能和 input_files 中的任何一个文件路径相同")
+    
     try:
         with open(output_file, 'w', encoding='utf-8') as out_f:
             if format_type == 'xml':
@@ -160,24 +164,26 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
-  mergefile 1.py 2.csv data/xx.py output.xml
-  mergefile --header "这是我的项目代码" src/*.py merged.xml
-  mergefile --header "数据文件合并" data.csv config.json result.xml
+  mergefile 1.py 2.csv data/xx.py -o output.xml
+  mergefile --header "这是我的项目代码" src/*.py -o merged.xml
+  mergefile --header "数据文件合并" data.csv config.json -o result.xml
         """
     )
-    parser.add_argument('files', nargs='+', help='输入文件列表，最后一个参数是输出文件')
+    parser.add_argument('files', nargs='+', help='输入文件列表')
+    parser.add_argument('-o', '--output', required=True, help='输出文件路径')
     parser.add_argument('--header', help='添加自定义头部注释')
     parser.add_argument('--format', choices=['xml', 'markdown'], default='markdown', 
                        help='输出格式 (默认: markdown)')
     
     args = parser.parse_args()
     
-    if len(args.files) < 2:
-        parser.error("至少需要一个输入文件和一个输出文件")
+    if len(args.files) < 1:
+        parser.error("至少需要一个输入文件")
     
-    # 最后一个参数是输出文件，其余是输入文件
-    input_files = args.files[:-1]
-    output_file = args.files[-1]
+    # 输入文件列表
+    input_files = args.files
+    # 输出文件通过-o参数指定
+    output_file = args.output
     
     merge_files(input_files, output_file, args.header, args.format)
 
