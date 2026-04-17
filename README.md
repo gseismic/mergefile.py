@@ -1,183 +1,343 @@
 # MergeFile
 
-一个简单的文件合并工具，可以将多个文件合并为XML或Markdown格式，特别适合为大语言模型（LLM）准备输入文档。
+A powerful file merging tool with wildcard support that can combine multiple files into XML or Markdown format, especially suitable for preparing input documents for Large Language Models (LLM).
 
-## 特性
+[中文文档](README_zh.md) | [English Documentation](README.md)
 
-- 🚀 支持合并任意数量的文件
-- 📝 支持XML和Markdown两种输出格式
-- 🏷️ 自动根据文件扩展名识别代码语言（Markdown格式）
-- 💬 支持自定义头部注释
-- 🔧 命令行工具，易于使用
-- 📦 可通过pip安装
-- 🛡️ 错误处理完善，跳过不存在或无法读取的文件
+## Features
 
-## 安装
+- 🚀 **Wildcard Support**: Supports wildcard patterns like `*.py`, `**/*.md`, easily matching nested directories
+- 📝 **Dual Format Output**: Supports both XML and Markdown output formats (default: Markdown)
+- 🏷️ **Smart Language Detection**: Automatically identifies code language by file extension (Markdown format)
+- 🔒 **Safety Protection**: Prevents output file from being in the input file list, avoiding data loss
+- ⚡ **Force Overwrite**: Use `-f` or `--force` option to overwrite existing output files
+- 🚫 **Exclusion Patterns**: Supports `--exclude` option to exclude specific files or directories
+- 🔍 **Recursion Control**: Recursive search by default, can be disabled with `--no-recursive`
+- 💬 **Custom Header**: Supports adding custom header comments
+- 📊 **Detailed Output**: Shows processed file list and statistics
+- 🛡️ **Error Recovery**: Skips non-existent or unreadable files, continues processing others
+- 📦 **Easy Installation**: Supports pip installation and development mode installation
 
-### 从源码安装
+## Installation
+
+### Install from Source (Recommended)
+
+This project uses modern `pyproject.toml` configuration (PEP 517/518). Installation is straightforward:
 
 ```bash
-git clone (https://github.com/gseismic/mergefile.py)
+# Clone the repository
+git clone https://github.com/gseismic/mergefile.py
 cd mergefile.py
+
+# Install using pyproject.toml (modern Python packaging)
 pip install .
 ```
 
-### 开发模式安装
+### Development Mode Installation
+
+For development, install in editable mode with development dependencies:
 
 ```bash
-git clone <repository-url>
+# Clone the repository and enter directory
+git clone https://github.com/gseismic/mergefile.py
 cd mergefile.py
+
+# Development mode installation (editable)
 pip install -e .
+
+# Install development dependencies from pyproject.toml
+pip install -e ".[dev]"
 ```
 
-## 使用方法
+## Usage
 
-### 基本用法
+### Basic Syntax
 
 ```bash
-# 合并多个文件到XML格式
-mergefile file1.py file2.csv data/config.json output.xml
-
-# 合并到Markdown格式
-mergefile --format markdown src/main.py src/utils.py README.md output.md
-
-# 添加自定义头部说明
-mergefile --header "这是我的项目源代码" src/*.py merged.xml
+mergefile [options] <file_patterns...> -o <output_file>
 ```
 
-### 命令行参数
+### Command Line Options
 
-- `files`: 输入文件列表，最后一个参数是输出文件
-- `--header`: 添加自定义头部注释
-- `--format`: 输出格式，可选 `xml`或 `markdown`（默认）
-- `--help`: 显示帮助信息
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--output` | `-o` | **Required**, specifies output file path |
+| `--format` | | Output format: `xml` or `markdown` (default: `markdown`) |
+| `--header` | | Add custom header comment |
+| `--force` | `-f` | Force overwrite of existing output file |
+| `--exclude` | | Exclude files matching pattern (can be used multiple times) |
+| `--no-recursive` | | Disable recursive directory search |
+| `--version` | | Display version information |
+| `--help` | `-h` | Display help information |
 
-### 使用示例
+### Wildcard Pattern Examples
 
-#### 示例1：合并Python项目文件
+#### Basic Wildcards
+```bash
+# Merge all Python files in current directory
+mergefile *.py -o all_python.xml
+
+# Merge all Python files in src directory
+mergefile src/*.py -o src_code.md
+
+# Merge multiple file types
+mergefile *.py *.md *.json -o combined.xml
+```
+
+#### Recursive Wildcards (`**`)
+```bash
+# Recursively merge all Python files (including subdirectories)
+mergefile **/*.py -o all_code.xml
+
+# Merge all files in src directory and its subdirectories
+mergefile src/**/* -o src_all.md
+
+# Merge all Python files in specific directories
+mergefile src/**/*.py tests/**/*.py -o codebase.xml
+```
+
+#### Exclusion Patterns
+```bash
+# Merge all Python files, excluding test files
+mergefile **/*.py --exclude tests/ --exclude *_test.py -o source_only.md
+
+# Merge configuration files, excluding temporary files
+mergefile config/**/* --exclude *.tmp --exclude *.bak -o configs.xml
+```
+
+### Safety Protection Examples
 
 ```bash
-mergefile --header "Python项目源码" \
-  main.py \
-  utils/helper.py \
-  config/settings.py \
-  project_code.xml
+# Safety protection: output file cannot be in input files
+mergefile *.py -o output.py  # Error: output_file cannot be in input_files
+
+# Force overwrite existing file
+mergefile *.py -o existing.xml --force  # Overwrites existing file
+
+# Without --force, it will error
+mergefile *.py -o existing.xml  # Error: Output file exists, use -f or --force option to force overwrite
 ```
 
-#### 示例2：合并配置文件到Markdown
+### Complete Examples
 
+#### Example 1: Merge Entire Project Source Code
 ```bash
-mergefile --format markdown \
-  --header "项目配置文件集合" \
-  config.json \
-  docker-compose.yml \
-  requirements.txt \
-  configs.md
+mergefile \
+  --header "Project Source Code - Generated on $(date)" \
+  --format xml \
+  **/*.py **/*.js **/*.html **/*.css \
+  --exclude node_modules/ \
+  --exclude __pycache__/ \
+  --exclude *.min.js \
+  -o project_documentation.xml
 ```
 
-#### 示例3：合并多种类型文件
-
+#### Example 2: Prepare Training Data for LLM
 ```bash
-mergefile --header "完整项目文档" \
-  README.md \
-  src/main.py \
-  tests/test_main.py \
-  package.json \
-  all_files.xml
+mergefile \
+  --header "Code Dataset - Python and JavaScript" \
+  --format markdown \
+  src/**/*.py \
+  static/**/*.js \
+  --exclude tests/ \
+  --exclude vendor/ \
+  -o llm_training_data.md
 ```
 
-## 输出格式
+#### Example 3: Merge Configuration Files
+```bash
+mergefile \
+  --header "Application Configuration Collection" \
+  config/*.json \
+  config/*.yaml \
+  config/*.toml \
+  .env.example \
+  --force \
+  -o all_configs.md
+```
 
-### XML格式
+## Output Formats
 
-XML格式使用结构化的标签来组织文件内容，使用CDATA块来包含原始文件内容，避免XML解析问题：
+### Markdown Format (Default)
+
+Markdown format is human-readable, automatically detects code languages and adds syntax highlighting:
+
+```markdown
+# Description
+
+Project Source Code - Generated on 2024-01-01
+
+## File List
+
+Merged 3 files:
+
+1. `src/main.py`
+2. `src/utils/helper.py`
+3. `config/settings.yaml`
+
+## File Contents
+
+File contents are detailed below:
+
+---
+
+### main.py
+
+File path: `src/main.py`
+
+```python
+def main():
+    print("Hello, World!")
+
+if __name__ == "__main__":
+    main()
+```
+
+---
+```
+
+### XML Format
+
+XML format provides structured data, suitable for machine processing, using CDATA blocks to avoid XML parsing issues:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<merged_files>
-  <!-- ==================== HEADER ==================== -->
-  <header>
-    这是我的项目代码
-  </header>
+<file_documentation>
+  <description>
+    Project Source Code - Generated on 2024-01-01
+  </description>
 
-  <!-- ==================== main.py ==================== -->
-  <file name="main.py" path="main.py">
-    <![CDATA[
-    # 文件内容
-    ]]>
-  </file>
-</merged_files>
-```
+  <file_list>
+    <item index="1" path="src/main.py" name="main.py" />
+    <item index="2" path="src/utils/helper.py" name="helper.py" />
+    <item index="3" path="config/settings.yaml" name="settings.yaml" />
+  </file_list>
 
-### Markdown格式
-
-Markdown格式更适合人类阅读，自动识别代码语言并添加语法高亮：
-
-```markdown
-# 合并文件
-
-## 说明
-
-这是我的项目代码
-
-合并了 2 个文件:
-
-1. `main.py`
-2. `utils.py`
-
----
-
-## 文件: main.py
-
-**路径:** `main.py`
-
-```python
-# Python代码内容
+  <file_contents>
+    <file name="main.py" path="src/main.py">
+      <![CDATA[
 def main():
     print("Hello, World!")
+
+if __name__ == "__main__":
+    main()
+      ]]>
+    </file>
+  </file_contents>
+</file_documentation>
 ```
 
----
+## Supported File Types
+
+The tool automatically recognizes 100+ file types and applies corresponding syntax highlighting in Markdown format:
+
+| Category | File Extensions | Language Identifier |
+|----------|----------------|---------------------|
+| **Programming Languages** | `.py`, `.js`, `.ts`, `.java`, `.cpp`, `.c`, `.h`, `.cs`, `.php`, `.rb`, `.go`, `.rs`, `.swift`, `.kt`, `.scala`, `.r` | Corresponding language |
+| **Markup Languages** | `.html`, `.xml`, `.css`, `.scss`, `.sass`, `.md`, `.tex` | Corresponding language |
+| **Configuration Files** | `.json`, `.yaml`, `.yml`, `.toml`, `.ini`, `.cfg`, `.conf`, `.properties` | Corresponding language |
+| **Scripting Languages** | `.sh`, `.bash`, `.zsh`, `.fish`, `.ps1`, `.bat`, `.cmd` | Corresponding language |
+| **Data Files** | `.csv`, `.tsv`, `.sql` | Corresponding language |
+| **Others** | `.dockerfile`, `.gitignore`, `.env`, `.log`, `.txt` | Corresponding language |
+
+Unlisted file types will use `text` as the default language identifier.
+
+## Error Handling
+
+MergeFile has a comprehensive error handling mechanism:
+
+### File Access Errors
+- **File not found**: Shows warning, skips the file, continues processing other files
+- **Permission denied**: Shows error, skips the file
+- **Encoding error**: Shows error, marks encoding error in output file
+
+### Safety Protection
+- **Output file in input**: Immediately stops and shows error, preventing data loss
+- **Output file exists**: Unless using `--force`, shows error and stops
+
+### Input Validation
+- **No matching files**: Shows error and stops
+- **Invalid arguments**: Shows detailed help information
+
+## Development
+
+### Project Structure
+```
+mergefile.py/
+├── mergefile.py          # Main program
+├── pyproject.toml        # Project configuration and dependencies
+├── setup.py             # Traditional installation script (compatibility)
+├── README.md            # This document (English)
+├── README_zh.md         # Chinese documentation
+├── LICENSE              # MIT License
+├── test_wildcard.py     # Wildcard functionality tests
+├── test_file_check.py   # File check functionality tests
+└── test_cli_examples.py # Command line examples tests
 ```
 
-## 支持的文件类型
-
-工具会自动识别以下文件类型并在Markdown格式中应用相应的语法高亮：
-
-- **编程语言**: Python, JavaScript, TypeScript, Java, C/C++, C#, PHP, Ruby, Go, Rust, Swift, Kotlin, Scala, R
-- **标记语言**: HTML, XML, CSS, SCSS, Sass, Markdown, LaTeX
-- **配置文件**: JSON, YAML, TOML, INI
-- **脚本**: Bash, Zsh, Fish, PowerShell, Batch
-- **数据文件**: CSV, TSV, SQL
-- **其他**: Dockerfile等
-
-## 错误处理
-
-- 如果输入文件不存在，会显示警告并跳过该文件
-- 如果文件编码有问题，会显示错误信息并在输出中标记
-- 程序会继续处理其他文件，不会因单个文件错误而中断
-
-## 开发
-
-### 运行测试
-
+### Running Tests
 ```bash
+# Install development dependencies
 pip install -e ".[dev]"
+
+# Run all tests
 pytest
+
+# Run specific test files
+pytest test_wildcard.py -v
+pytest test_file_check.py -v
+
+# Run tests with coverage
+pytest --cov=mergefile
 ```
 
-### 代码格式化
-
+### Code Quality
 ```bash
+# Code formatting (Black)
 black mergefile.py
+
+# Code linting (Flake8)
 flake8 mergefile.py
+
+# Type checking (Mypy)
+mypy mergefile.py
 ```
 
-## 许可证
+### Building and Publishing
+```bash
+# Build distribution packages
+python -m build
 
-MIT License
+# Upload to PyPI
+twine upload dist/*
+```
 
-## 贡献
+## License
 
-欢迎提交Issue和Pull Request！
+MIT License - You are free to use, modify, and distribute this software. 
+Feel free to copy the `mergefile.py` script directly into your own projects and use it as needed.
 
+## Contributing
+
+Contributions are welcome! Feel free to submit Issues or Pull Requests.
+
+### Contribution Guidelines
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### TODO Features
+- [ ] Add more output formats (JSON, HTML)
+- [ ] Support file content filtering (remove comments, blank lines)
+- [ ] Add progress bar display
+- [ ] Support reading options from configuration file
+- [ ] Add more file type recognition
+
+## Version History
+
+- **v1.0.0** (Initial version) - Basic file merging functionality
+- **v1.1.0** (Current version) - Added wildcard support, safety protection, force overwrite, and other advanced features
+
+Use `mergefile --version` to view current version.
