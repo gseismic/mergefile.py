@@ -54,6 +54,7 @@ def merge_files(
     format_type: str = "xml",
     recursive: bool = True,
     force: bool = False,
+    exclude_patterns: Optional[List[str]] = None,
 ) -> None:
     """
     将多个文件合并到一个输出文件中，支持通配符模式
@@ -65,6 +66,7 @@ def merge_files(
         format_type: 输出格式 ('xml' 或 'markdown')
         recursive: 是否递归搜索子目录
         force: 是否强制覆盖已存在的输出文件
+        exclude_patterns: 排除模式列表（支持通配符，如 --exclude tests/ --exclude *.tmp）
 
     Raises:
         ValueError: 如果输出文件在输入文件列表中，或者输出文件已存在且未使用强制覆盖
@@ -72,6 +74,22 @@ def merge_files(
     """
     # 扩展通配符模式
     input_files = expand_file_patterns(input_patterns)
+
+    # 如果有排除模式，过滤文件
+    if exclude_patterns:
+        # 扩展排除模式
+        excluded_files = expand_file_patterns(exclude_patterns)
+        excluded_set = set(excluded_files)
+
+        # 过滤掉被排除的文件
+        filtered_files = []
+        for file_path in input_files:
+            if file_path not in excluded_set:
+                filtered_files.append(file_path)
+            else:
+                print(f"排除文件: {file_path}")
+
+        input_files = filtered_files
 
     if not input_files:
         raise ValueError("没有找到任何匹配的文件")
@@ -315,7 +333,7 @@ def main() -> None:
     parser.add_argument(
         "patterns",
         nargs="+",
-        help="输入文件模式列表（支持通配符如 *.py, **/*.md）",
+        help="输入文件模式列表（支持通配符如 *.py, **/*.md）。注意：如果使用通配符（如 **/*.py），请用引号包裹以防止shell扩展",
     )
     parser.add_argument("-o", "--output", required=True, help="输出文件路径")
     parser.add_argument("--header", help="添加自定义头部注释")
@@ -334,7 +352,7 @@ def main() -> None:
         "--exclude",
         action="append",
         default=[],
-        help="排除模式（可多次使用，如 --exclude tests/ --exclude *.tmp）",
+        help="排除模式（可多次使用，如 --exclude tests/ --exclude *.tmp）。注意：如果使用通配符（如 **/*.py），请用引号包裹以防止shell扩展",
     )
     parser.add_argument(
         "-f",
@@ -351,27 +369,14 @@ def main() -> None:
     # 设置递归标志
     recursive = not args.no_recursive
 
-    # 处理排除模式（简化版本，实际应用中可能需要更复杂的过滤）
-    filtered_patterns = []
-    for pattern in args.patterns:
-        # 这里简化处理，实际应用中可能需要更复杂的排除逻辑
-        should_exclude = False
-        for exclude_pattern in args.exclude:
-            # 简单的字符串匹配检查
-            if exclude_pattern in pattern:
-                should_exclude = True
-                break
-
-        if not should_exclude:
-            filtered_patterns.append(pattern)
-        else:
-            print(f"排除模式: {pattern}")
-
-    if not filtered_patterns:
-        parser.error("所有输入模式都被排除，没有文件可处理")
-
     merge_files(
-        filtered_patterns, args.output, args.header, args.format, recursive, args.force
+        args.patterns,
+        args.output,
+        args.header,
+        args.format,
+        recursive,
+        args.force,
+        exclude_patterns=args.exclude,
     )
 
 
