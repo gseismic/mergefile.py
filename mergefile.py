@@ -35,7 +35,7 @@ def expand_file_patterns(patterns: List[str]) -> List[str]:
             if os.path.isfile(pattern):
                 expanded_files.append(pattern)
             else:
-                print(f"警告: 模式 '{pattern}' 没有匹配到任何文件")
+                print(f"Warning: Pattern '{pattern}' did not match any files")
         else:
             # 过滤掉目录，只保留文件
             for file_path in matched_files:
@@ -69,8 +69,8 @@ def merge_files(
         exclude_patterns: 排除模式列表（支持通配符，如 --exclude tests/ --exclude *.tmp）
 
     Raises:
-        ValueError: 如果输出文件在输入文件列表中，或者输出文件已存在且未使用强制覆盖
-        IOError: 如果无法写入输出文件
+        ValueError: If output file is in input files list, or output file exists and force is not used
+        IOError: If unable to write output file
     """
     # 扩展通配符模式
     input_files = expand_file_patterns(input_patterns)
@@ -87,12 +87,12 @@ def merge_files(
             if file_path not in excluded_set:
                 filtered_files.append(file_path)
             else:
-                print(f"排除文件: {file_path}")
+                print(f"Excluded file: {file_path}")
 
         input_files = filtered_files
 
     if not input_files:
-        raise ValueError("没有找到任何匹配的文件")
+        raise ValueError("No matching files found")
 
     # 将input_files中的路径转换为绝对路径，同时将output_file也转换为绝对路径
     abs_input_files = [os.path.abspath(f) for f in input_files]
@@ -101,12 +101,12 @@ def merge_files(
     # output_file 不能和 input_files 中的任何一个文件路径相同
     # 使用绝对路径进行比较
     if abs_output_file in abs_input_files:
-        raise ValueError("output_file 不能和 input_files 中的任何一个文件路径相同")
+        raise ValueError("output_file cannot be in input_files")
 
     # 检查输出文件是否已经存在（使用绝对路径）
     if os.path.exists(abs_output_file) and not force:
         raise ValueError(
-            f"输出文件已存在: {output_file}。使用 -f 或 --force 选项强制覆盖。"
+            f"Output file already exists: {output_file}. Use -f or --force option to force overwrite."
         )
 
     try:
@@ -117,13 +117,13 @@ def merge_files(
                 _write_markdown_format(out_f, input_files, header)
 
         print(
-            f"成功合并 {len(input_files)} 个文件到 {output_file} (格式: {format_type})"
+            f"Successfully merged {len(input_files)} files to {output_file} (format: {format_type})"
         )
-        print("处理的文件列表:")
+        print("Processed file list:")
         for i, file_path in enumerate(input_files, 1):
             print(f"  {i:3d}. {file_path}")
     except Exception as e:
-        print(f"写入输出文件时出错: {str(e)}")
+        print(f"Error writing output file: {str(e)}")
         raise
 
 
@@ -169,14 +169,14 @@ def _write_xml_format(
                     out_f.write("\n")
                 out_f.write("      ]]>\n")
         except FileNotFoundError:
-            print(f"警告: 文件 {file_path} 不存在，已跳过")
-            out_f.write("      <error>文件不存在</error>\n")
+            print(f"Warning: File {file_path} does not exist, skipped")
+            out_f.write("      <error>File not found</error>\n")
         except UnicodeDecodeError:
-            print(f"错误: 文件 {file_path} 解码失败，请检查编码格式")
-            out_f.write("      <error>编码错误</error>\n")
+            print(f"Error: File {file_path} decoding failed, check encoding format")
+            out_f.write("      <error>Encoding error</error>\n")
         except Exception as e:
-            print(f"错误: 读取文件 {file_path} 时出错: {str(e)}")
-            out_f.write(f"      <error>读取错误: {escape(str(e))}</error>\n")
+            print(f"Error: Failed to read file {file_path}: {str(e)}")
+            out_f.write(f"      <error>Read error: {escape(str(e))}</error>\n")
 
         out_f.write("    </file>\n")
     out_f.write("  </file_contents>\n")
@@ -220,14 +220,14 @@ def _write_markdown_format(
                     out_f.write("\n")
                 out_f.write("```\n\n")
         except FileNotFoundError:
-            print(f"警告: 文件 {file_path} 不存在，已跳过")
-            out_f.write("文件不存在\n\n")
+            print(f"Warning: File {file_path} does not exist, skipped")
+            out_f.write("File not found\n\n")
         except UnicodeDecodeError:
-            print(f"错误: 文件 {file_path} 解码失败，请检查编码格式")
-            out_f.write("编码错误\n\n")
+            print(f"Error: File {file_path} decoding failed, check encoding format")
+            out_f.write("Encoding error\n\n")
         except Exception as e:
-            print(f"错误: 读取文件 {file_path} 时出错: {str(e)}")
-            out_f.write(f"读取错误: {str(e)}\n\n")
+            print(f"Error: Failed to read file {file_path}: {str(e)}")
+            out_f.write(f"Read error: {str(e)}\n\n")
 
 
 def _get_language_by_extension(ext: str) -> str:
@@ -309,22 +309,22 @@ def _get_language_by_extension(ext: str) -> str:
 
 
 def main() -> None:
-    """命令行入口函数"""
+    """Command line entry function"""
     parser = argparse.ArgumentParser(
-        description="合并多个文件到XML或Markdown格式，适合提供给大模型阅读\n支持通配符模式（如 *.py, src/**/*.py）",
+        description="Merge multiple files into XML or Markdown format, suitable for LLM input\nSupports wildcard patterns (e.g., *.py, src/**/*.py)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-通配符模式示例:
-  mergefile *.py -o output.xml                    # 当前目录所有.py文件
-  mergefile src/**/*.py -o output.xml            # src目录下所有.py文件（递归）
-  mergefile *.py *.md *.txt -o output.xml        # 多种类型文件
-  mergefile data/*.csv config/*.json -o output.xml # 多个目录的文件
-  mergefile **/*.py --exclude tests/ -o output.xml # 排除特定目录
+Wildcard Pattern Examples:
+  mergefile *.py -o output.xml                    # All .py files in current directory
+  mergefile src/**/*.py -o output.xml            # All .py files in src directory (recursive)
+  mergefile *.py *.md *.txt -o output.xml        # Multiple file types
+  mergefile data/*.csv config/*.json -o output.xml # Files from multiple directories
+  mergefile **/*.py --exclude tests/ -o output.xml # Exclude specific directories
 
-文件模式示例:
+File Pattern Examples:
   mergefile 1.py 2.csv data/xx.py -o output.xml
-  mergefile --header "这是我的项目代码" src/*.py -o merged.xml
-  mergefile --header "数据文件合并" data.csv config.json -o result.xml
+  mergefile --header "My project code" src/*.py -o merged.xml
+  mergefile --header "Data file merge" data.csv config.json -o result.xml
         """,
     )
     parser.add_argument(
@@ -333,38 +333,38 @@ def main() -> None:
     parser.add_argument(
         "patterns",
         nargs="+",
-        help="输入文件模式列表（支持通配符如 *.py, **/*.md）。注意：如果使用通配符（如 **/*.py），请用引号包裹以防止shell扩展",
+        help="Input file pattern list (supports wildcards like *.py, **/*.md). Note: Quote wildcard patterns (e.g., '**/*.py') to prevent shell expansion",
     )
-    parser.add_argument("-o", "--output", required=True, help="输出文件路径")
-    parser.add_argument("--header", help="添加自定义头部注释")
+    parser.add_argument("-o", "--output", required=True, help="Output file path")
+    parser.add_argument("--header", help="Add custom header comment")
     parser.add_argument(
         "--format",
         choices=["xml", "markdown"],
         default="markdown",
-        help="输出格式 (默认: markdown)",
+        help="Output format (default: markdown)",
     )
     parser.add_argument(
         "--no-recursive",
         action="store_true",
-        help="禁用递归搜索（默认启用递归）",
+        help="Disable recursive search (recursive by default)",
     )
     parser.add_argument(
         "--exclude",
         action="append",
         default=[],
-        help="排除模式（可多次使用，如 --exclude tests/ --exclude *.tmp）。注意：如果使用通配符（如 **/*.py），请用引号包裹以防止shell扩展",
+        help="Exclude patterns (can be used multiple times, e.g., --exclude tests/ --exclude *.tmp). Note: Quote wildcard patterns (e.g., '**/*.py') to prevent shell expansion",
     )
     parser.add_argument(
         "-f",
         "--force",
         action="store_true",
-        help="强制覆盖已存在的输出文件",
+        help="Force overwrite of existing output file",
     )
 
     args = parser.parse_args()
 
     if len(args.patterns) < 1:
-        parser.error("至少需要一个输入文件模式")
+        parser.error("At least one input file pattern is required")
 
     # 设置递归标志
     recursive = not args.no_recursive

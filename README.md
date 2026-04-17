@@ -4,171 +4,252 @@ A powerful file merging tool with wildcard support that can combine multiple fil
 
 [中文文档](README_zh.md) | [English Documentation](README.md)
 
-## Features
+## 🚀 Quick Start
 
-- 🚀 **Wildcard Support**: Supports wildcard patterns like `*.py`, `**/*.md`, easily matching nested directories
-- 📝 **Dual Format Output**: Supports both XML and Markdown output formats (default: Markdown)
-- 🏷️ **Smart Language Detection**: Automatically identifies code language by file extension (Markdown format)
-- 🔒 **Safety Protection**: Prevents output file from being in the input file list, avoiding data loss
-- ⚡ **Force Overwrite**: Use `-f` or `--force` option to overwrite existing output files
-- 🚫 **Exclusion Patterns**: Supports `--exclude` option to exclude specific files or directories
-- 🔍 **Recursion Control**: Recursive search by default, can be disabled with `--no-recursive`
-- 💬 **Custom Header**: Supports adding custom header comments
-- 📊 **Detailed Output**: Shows processed file list and statistics
-- 🛡️ **Error Recovery**: Skips non-existent or unreadable files, continues processing others
-- 📦 **Easy Installation**: Supports pip installation and development mode installation
-
-## Installation
-
-### Install from Source (Recommended)
-
-This project uses modern `pyproject.toml` configuration (PEP 517/518). Installation is straightforward:
-
+### Basic Usage
 ```bash
-# Clone the repository
+# Merge all Python files in current directory
+mergefile *.py -o output.md
+
+# Merge files with wildcards (use quotes to prevent shell expansion)
+mergefile '**/*.py' -o all_code.xml
+
+# Merge multiple file types
+mergefile '*.py' '*.md' '*.json' -o combined.md
+```
+
+### Advanced Wildcard Usage
+```bash
+# Recursive search with exclusion
+mergefile '**/*.py' --exclude 'tests/**/*.py' -o source_code.md
+
+# Multiple exclusions
+mergefile '**/*' --exclude 'node_modules/' --exclude '*.tmp' -o project_files.xml
+
+# Force overwrite existing output
+mergefile '*.py' -o output.md --force
+```
+
+### Important Note on Wildcards
+**Always quote wildcard patterns** to prevent shell expansion:
+```bash
+# ✅ Correct: Quotes prevent shell from expanding wildcards
+mergefile '**/*.py' --exclude 'tests/**/*.py' -o output.md
+
+# ❌ Incorrect: Shell expands wildcards before mergefile sees them
+mergefile **/*.py --exclude tests/**/*.py -o output.md
+```
+
+## ✨ Features
+
+- 🚀 **Advanced Wildcard Support**: Full support for `*.py`, `**/*.md`, `src/**/*.py` patterns with proper shell quoting
+- 🚫 **Smart Exclusion**: Exclude files/directories with `--exclude` option (supports wildcards)
+- 📝 **Dual Format Output**: XML for structured data, Markdown for human-readable output (default)
+- 🏷️ **Auto Language Detection**: 100+ file types recognized with proper syntax highlighting
+- 🔒 **Safety First**: Prevents output file from being in input, requires `--force` to overwrite
+- 🔍 **Recursive by Default**: Searches subdirectories automatically, disable with `--no-recursive`
+- 💬 **Custom Headers**: Add context with `--header "Your description"`
+- 📊 **Detailed Reporting**: Shows file list, counts, and warnings
+- 🛡️ **Error Resilient**: Skips problematic files, continues processing
+- 📦 **Modern Packaging**: Uses `pyproject.toml`, no legacy `setup.py` required
+
+## 📦 Installation
+
+### Quick Install
+```bash
+# Clone and install
 git clone https://github.com/gseismic/mergefile.py
 cd mergefile.py
-
-# Install using pyproject.toml (modern Python packaging)
 pip install .
 ```
 
-### Development Mode Installation
-
-For development, install in editable mode with development dependencies:
-
+### Development Install
 ```bash
-# Clone the repository and enter directory
-git clone https://github.com/gseismic/mergefile.py
-cd mergefile.py
-
-# Development mode installation (editable)
-pip install -e .
-
-# Install development dependencies from pyproject.toml
+# Editable install with dev dependencies
 pip install -e ".[dev]"
 ```
 
-## Usage
-
-### Basic Syntax
-
+### Direct Usage (No Install)
 ```bash
-mergefile [options] <file_patterns...> -o <output_file>
+# Run directly without installation
+python mergefile.py '**/*.py' -o output.md
 ```
 
-### Command Line Options
+## 📖 Usage Guide
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--output` | `-o` | **Required**, specifies output file path |
-| `--format` | | Output format: `xml` or `markdown` (default: `markdown`) |
-| `--header` | | Add custom header comment |
-| `--force` | `-f` | Force overwrite of existing output file |
-| `--exclude` | | Exclude files matching pattern (can be used multiple times) |
-| `--no-recursive` | | Disable recursive directory search |
-| `--version` | | Display version information |
-| `--help` | `-h` | Display help information |
-
-### Wildcard Pattern Examples
-
-#### Basic Wildcards
+### Command Syntax
 ```bash
-# Merge all Python files in current directory
-mergefile *.py -o all_python.xml
-
-# Merge all Python files in src directory
-mergefile src/*.py -o src_code.md
-
-# Merge multiple file types
-mergefile *.py *.md *.json -o combined.xml
+mergefile [OPTIONS] PATTERNS... -o OUTPUT_FILE
 ```
 
-#### Recursive Wildcards (`**`)
+### Essential Options
+| Option | Short | Required | Description |
+|--------|-------|----------|-------------|
+| `--output` | `-o` | **Yes** | Output file path |
+| `--format` | | No | `xml` or `markdown` (default: `markdown`) |
+| `--header` | | No | Custom header text |
+| `--force` | `-f` | No | Overwrite existing output file |
+| `--exclude` | | No | Exclude pattern (use multiple times) |
+| `--no-recursive` | | No | Disable recursive search |
+| `--help` | `-h` | No | Show help |
+
+### ⚠️ Critical: Quoting Wildcards
+**Always quote patterns with wildcards** to prevent shell expansion:
 ```bash
-# Recursively merge all Python files (including subdirectories)
-mergefile **/*.py -o all_code.xml
+# ✅ Correct - mergefile handles the wildcards
+mergefile '**/*.py' --exclude 'tests/**/*.py' -o output.md
 
-# Merge all files in src directory and its subdirectories
-mergefile src/**/* -o src_all.md
-
-# Merge all Python files in specific directories
-mergefile src/**/*.py tests/**/*.py -o codebase.xml
+# ❌ Wrong - shell expands before mergefile sees them
+mergefile **/*.py --exclude tests/**/*.py -o output.md
 ```
 
-#### Exclusion Patterns
-```bash
-# Merge all Python files, excluding test files
-mergefile **/*.py --exclude tests/ --exclude *_test.py -o source_only.md
+### 🎯 Practical Examples
 
-# Merge configuration files, excluding temporary files
-mergefile config/**/* --exclude *.tmp --exclude *.bak -o configs.xml
+#### Basic File Merging
+```bash
+# Current directory Python files
+mergefile '*.py' -o python_files.md
+
+# Specific directory
+mergefile 'src/*.py' -o src_code.xml
+
+# Multiple file types
+mergefile '*.py' '*.md' '*.json' -o combined.md
 ```
 
-### Safety Protection Examples
-
+#### Recursive Search with `**`
 ```bash
-# Safety protection: output file cannot be in input files
-mergefile *.py -o output.py  # Error: output_file cannot be in input_files
+# All Python files in project
+mergefile '**/*.py' -o all_python.xml
 
-# Force overwrite existing file
-mergefile *.py -o existing.xml --force  # Overwrites existing file
+# Everything in src directory
+mergefile 'src/**/*' -o src_all.md
 
-# Without --force, it will error
-mergefile *.py -o existing.xml  # Error: Output file exists, use -f or --force option to force overwrite
+# Multiple directories
+mergefile 'src/**/*.py' 'tests/**/*.py' -o codebase.md
 ```
 
-### Complete Examples
+#### 🚫 Exclusion Patterns
+```bash
+# Exclude test directories
+mergefile '**/*.py' --exclude 'tests/**/*.py' -o source_code.md
 
-#### Example 1: Merge Entire Project Source Code
+# Multiple exclusions
+mergefile '**/*.py' --exclude 'tests/' --exclude '*_test.py' -o production_code.xml
+
+# Exclude temporary files
+mergefile 'config/**/*' --exclude '*.tmp' --exclude '*.bak' -o clean_configs.md
+
+# Complex exclusion
+mergefile '**/*' --exclude 'node_modules/' --exclude '.git/' --exclude '*.log' -o project_files.xml
+```
+
+#### Advanced Usage
+```bash
+# With custom header
+mergefile '**/*.py' --header "Project Code - $(date)" -o documentation.md
+
+# Force overwrite
+mergefile '*.py' -o existing.md --force
+
+# XML format for structured data
+mergefile '**/*.py' --format xml -o code_structure.xml
+
+# Disable recursion
+mergefile '*.py' --no-recursive -o current_dir_only.md
+```
+
+### 🔒 Safety Features
+
+```bash
+# ❌ Error: Output cannot be in input files
+mergefile '*.py' -o main.py
+# Error: output_file cannot be in input_files
+
+# ❌ Error: Output exists (use --force)
+mergefile '*.py' -o existing.md
+# Error: Output file exists: existing.md. Use -f or --force option to force overwrite.
+
+# ✅ Force overwrite
+mergefile '*.py' -o existing.md --force
+# Success: File overwritten
+
+# ✅ Safe operation
+mergefile '*.py' -o new_output.md
+# Success: New file created
+```
+
+### 🏗️ Real-World Scenarios
+
+#### 1. Complete Project Documentation
 ```bash
 mergefile \
-  --header "Project Source Code - Generated on $(date)" \
+  --header "Project Documentation - Generated on $(date)" \
   --format xml \
-  **/*.py **/*.js **/*.html **/*.css \
-  --exclude node_modules/ \
-  --exclude __pycache__/ \
-  --exclude *.min.js \
-  -o project_documentation.xml
+  '**/*.py' '**/*.js' '**/*.html' '**/*.css' \
+  --exclude 'node_modules/' \
+  --exclude '__pycache__/' \
+  --exclude '*.min.js' \
+  -o project_docs.xml
 ```
 
-#### Example 2: Prepare Training Data for LLM
+#### 2. LLM Training Data Preparation
 ```bash
 mergefile \
-  --header "Code Dataset - Python and JavaScript" \
+  --header "Code Dataset for AI Training" \
   --format markdown \
-  src/**/*.py \
-  static/**/*.js \
-  --exclude tests/ \
-  --exclude vendor/ \
-  -o llm_training_data.md
+  'src/**/*.py' \
+  'static/**/*.js' \
+  --exclude 'tests/' \
+  --exclude 'vendor/' \
+  --exclude '*_test.py' \
+  -o training_data.md
 ```
 
-#### Example 3: Merge Configuration Files
+#### 3. Configuration Management
 ```bash
 mergefile \
-  --header "Application Configuration Collection" \
-  config/*.json \
-  config/*.yaml \
-  config/*.toml \
-  .env.example \
+  --header "App Configurations" \
+  'config/*.json' \
+  'config/*.yaml' \
+  'config/*.toml' \
+  '.env.example' \
   --force \
   -o all_configs.md
 ```
 
-## Output Formats
+#### 4. Code Review Package
+```bash
+mergefile \
+  --header "Code Review - Feature Branch" \
+  'src/**/*.py' \
+  'tests/**/*.py' \
+  --exclude '__pycache__/' \
+  --exclude '*.pyc' \
+  -o code_review_package.xml
+```
 
-### Markdown Format (Default)
+#### 5. Backup Important Files
+```bash
+mergefile \
+  --header "Project Backup - $(date)" \
+  '**/*.py' '**/*.md' '**/*.json' '**/*.yaml' \
+  --exclude 'venv/' \
+  --exclude '.git/' \
+  --exclude '*.log' \
+  -o project_backup.md
+```
 
-Markdown format is human-readable, automatically detects code languages and adds syntax highlighting:
+## 📄 Output Formats
+
+### Markdown (Default) - Human Readable
+Perfect for documentation and sharing. Auto-detects 100+ file types with syntax highlighting.
 
 ```markdown
 # Description
-
-Project Source Code - Generated on 2024-01-01
+Project Analysis - Generated on 2024-01-01
 
 ## File List
-
 Merged 3 files:
 
 1. `src/main.py`
@@ -177,12 +258,9 @@ Merged 3 files:
 
 ## File Contents
 
-File contents are detailed below:
-
 ---
 
 ### main.py
-
 File path: `src/main.py`
 
 ```python
@@ -193,26 +271,29 @@ if __name__ == "__main__":
     main()
 ```
 
----
+### helper.py
+File path: `src/utils/helper.py`
+
+```python
+def helper():
+    return "Help!"
+```
 ```
 
-### XML Format
-
-XML format provides structured data, suitable for machine processing, using CDATA blocks to avoid XML parsing issues:
+### XML - Machine Readable
+Structured format ideal for processing by other tools. Uses CDATA to avoid XML issues.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <file_documentation>
-  <description>
-    Project Source Code - Generated on 2024-01-01
-  </description>
-
+  <description>Project Analysis - Generated on 2024-01-01</description>
+  
   <file_list>
     <item index="1" path="src/main.py" name="main.py" />
     <item index="2" path="src/utils/helper.py" name="helper.py" />
     <item index="3" path="config/settings.yaml" name="settings.yaml" />
   </file_list>
-
+  
   <file_contents>
     <file name="main.py" path="src/main.py">
       <![CDATA[
@@ -227,7 +308,17 @@ if __name__ == "__main__":
 </file_documentation>
 ```
 
-## Supported File Types
+### Format Comparison
+| Aspect | Markdown | XML |
+|--------|----------|-----|
+| **Best For** | Human reading, documentation | Machine processing, APIs |
+| **Syntax Highlighting** | ✅ Yes (100+ languages) | ❌ No |
+| **Structure** | Simple sections | Hierarchical XML |
+| **File Size** | Smaller | Larger (due to XML tags) |
+| **Readability** | Excellent | Good (with XML viewer) |
+| **Default** | ✅ Yes | ❌ No |
+
+## 📋 Supported File Types
 
 The tool automatically recognizes 100+ file types and applies corresponding syntax highlighting in Markdown format:
 
@@ -242,7 +333,7 @@ The tool automatically recognizes 100+ file types and applies corresponding synt
 
 Unlisted file types will use `text` as the default language identifier.
 
-## Error Handling
+## 🛡️ Error Handling
 
 MergeFile has a comprehensive error handling mechanism:
 
@@ -259,14 +350,21 @@ MergeFile has a comprehensive error handling mechanism:
 - **No matching files**: Shows error and stops
 - **Invalid arguments**: Shows detailed help information
 
-## Development
+### Common Issues & Solutions
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| `unrecognized arguments` | Shell expanded wildcards before mergefile saw them | **Quote wildcard patterns**: `'**/*.py'` instead of `**/*.py` |
+| `output_file cannot be in input_files` | Output file is in the input patterns | Use different output filename |
+| `Output file exists` | Output file already exists | Use `--force` to overwrite or choose different name |
+| `No matching files` | Pattern doesn't match any files | Check pattern, use `*.py` for current dir, `**/*.py` for recursive |
+
+## 🛠️ Development
 
 ### Project Structure
 ```
 mergefile.py/
 ├── mergefile.py          # Main program
 ├── pyproject.toml        # Project configuration and dependencies
-
 ├── README.md            # This document (English)
 ├── README_zh.md         # Chinese documentation
 ├── LICENSE              # MIT License
@@ -301,6 +399,10 @@ flake8 mergefile.py
 
 # Type checking (Mypy)
 mypy mergefile.py
+
+# Modern linting (Ruff)
+uvx ruff check mergefile.py
+uvx ruff check . --fix
 ```
 
 ### Building and Publishing
@@ -312,12 +414,12 @@ python -m build
 twine upload dist/*
 ```
 
-## License
+## 📄 License
 
 MIT License - You are free to use, modify, and distribute this software. 
 Feel free to copy the `mergefile.py` script directly into your own projects and use it as needed.
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Feel free to submit Issues or Pull Requests.
 
@@ -335,9 +437,37 @@ Contributions are welcome! Feel free to submit Issues or Pull Requests.
 - [ ] Support reading options from configuration file
 - [ ] Add more file type recognition
 
-## Version History
+## 📈 Version History
 
 - **v1.0.0** (Initial version) - Basic file merging functionality
 - **v1.1.0** (Current version) - Added wildcard support, safety protection, force overwrite, and other advanced features
 
 Use `mergefile --version` to view current version.
+
+## ❓ FAQ
+
+### Q: Why do I need to quote wildcard patterns?
+**A**: Shells (bash, zsh, etc.) expand wildcards before passing them to programs. When you type `**/*.py`, the shell expands it to a list of files. Quotes `'**/*.py'` tell the shell to pass the pattern literally to mergefile, which then handles the wildcard expansion itself.
+
+### Q: What's the difference between `*.py` and `**/*.py`?
+**A**: `*.py` matches Python files in the current directory only. `**/*.py` matches Python files in the current directory and all subdirectories (recursive).
+
+### Q: Can I exclude multiple patterns?
+**A**: Yes! Use `--exclude` multiple times: `--exclude 'tests/' --exclude '*.tmp' --exclude 'node_modules/'`
+
+### Q: What happens if a file can't be read?
+**A**: mergefile shows a warning and skips that file, continuing with the rest. The error is noted in the output file.
+
+### Q: Is mergefile safe to use?
+**A**: Yes! mergefile has multiple safety features:
+- Won't overwrite files without `--force`
+- Prevents output file from being in input files
+- Shows warnings for problematic files
+- Continues processing even if some files fail
+
+### Q: Can I use mergefile in scripts?
+**A**: Absolutely! mergefile is designed for both interactive use and scripting. It provides clear exit codes and machine-readable output when using XML format.
+
+### Q: How do I get help?
+**A**: Use `mergefile --help` for full command reference, or check the examples in this README.
+

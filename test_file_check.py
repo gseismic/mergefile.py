@@ -44,7 +44,7 @@ def test_output_in_input() -> None:
                 assert False, "应该抛出ValueError但未抛出"
             except ValueError as e:
                 # 检查错误消息是否正确
-                assert "output_file 不能和 input_files" in str(e), (
+                assert "output_file cannot be in input_files" in str(e), (
                     f"错误的错误消息: {str(e)}"
                 )
                 print(f"✅ 测试通过: {str(e)}")
@@ -89,8 +89,10 @@ def test_output_exists_no_force() -> None:
                 assert False, "应该抛出ValueError但未抛出"
             except ValueError as e:
                 # 检查错误消息是否正确
-                assert "输出文件已存在" in str(e), f"错误的错误消息: {str(e)}"
-                assert "强制覆盖" in str(e), f"错误的错误消息: {str(e)}"
+                assert "Output file already exists" in str(e), (
+                    f"错误的错误消息: {str(e)}"
+                )
+                assert "force overwrite" in str(e), f"错误的错误消息: {str(e)}"
                 print(f"✅ 测试通过: {str(e)}")
             except Exception as e:
                 # 抛出了其他异常，测试失败
@@ -226,7 +228,9 @@ def test_cli_force_option() -> None:
 
             # 检查命令应该失败
             assert result.returncode != 0, "不带强制覆盖选项时应该失败但未失败"
-            assert "输出文件已存在" in result.stderr, f"错误消息不正确: {result.stderr}"
+            assert "Output file already exists" in result.stderr, (
+                f"错误消息不正确: {result.stderr}"
+            )
             print("✅ 不带强制覆盖选项时正确失败")
 
             # 测试带强制覆盖选项（应该成功）
@@ -250,7 +254,9 @@ def test_cli_force_option() -> None:
             assert result.returncode == 0, (
                 f"带强制覆盖选项时失败，返回码: {result.returncode}"
             )
-            assert "成功合并" in result.stdout, f"输出消息不正确: {result.stdout}"
+            assert "Successfully merged" in result.stdout, (
+                f"输出消息不正确: {result.stdout}"
+            )
             print("✅ 带强制覆盖选项时成功")
         finally:
             os.chdir(original_cwd)
