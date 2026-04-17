@@ -5,10 +5,9 @@
 """
 
 import os
-import shutil
 import sys
 import tempfile
-from pathlib import Path
+from typing import Any, Dict, List
 
 # 添加 mergefile 模块到路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -72,7 +71,7 @@ def create_test_structure(base_dir: str) -> None:
         os.chdir(original_cwd)
 
 
-def test_wildcard_patterns():
+def test_wildcard_patterns() -> None:
     """测试通配符模式"""
     print("\n" + "=" * 60)
     print("测试通配符模式")
@@ -87,7 +86,7 @@ def test_wildcard_patterns():
         os.chdir(tmpdir)
 
         try:
-            test_cases = [
+            test_cases: List[Dict[str, Any]] = [
                 {
                     "name": "测试当前目录所有Python文件",
                     "patterns": ["*.py"],
@@ -130,25 +129,25 @@ def test_wildcard_patterns():
                 print(f"模式: {test_case['patterns']}")
 
                 try:
+                    # 提取测试用例参数
+                    patterns: list[str] = test_case["patterns"]
+                    expected_min: int = test_case["expected_min_files"]
+
                     # 扩展文件模式
-                    expanded_files = mergefile.expand_file_patterns(
-                        test_case["patterns"]
-                    )
+                    expanded_files = mergefile.expand_file_patterns(patterns)
 
                     print(f"找到文件数: {len(expanded_files)}")
                     if expanded_files:
                         print("文件列表:")
-                        for i, file_path in enumerate(
-                            expanded_files[:5], 1
-                        ):  # 只显示前5个
+                        for i, file_path in enumerate(expanded_files[:5], 1):
                             rel_path = os.path.relpath(file_path, tmpdir)
                             print(f"  {i}. {rel_path}")
                         if len(expanded_files) > 5:
                             print(f"  ... 还有 {len(expanded_files) - 5} 个文件")
 
                     # 验证结果
-                    assert len(expanded_files) >= test_case["expected_min_files"], (
-                        f"预期至少 {test_case['expected_min_files']} 个文件，但找到 {len(expanded_files)} 个"
+                    assert len(expanded_files) >= expected_min, (
+                        f"预期至少 {expected_min} 个文件，但找到 {len(expanded_files)} 个"
                     )
 
                     # 验证所有文件都存在
@@ -168,7 +167,7 @@ def test_wildcard_patterns():
             os.chdir(original_cwd)
 
 
-def test_merge_with_wildcards():
+def test_merge_with_wildcards() -> None:
     """测试使用通配符合并文件"""
     print("\n" + "=" * 60)
     print("测试使用通配符合并文件")
@@ -183,7 +182,7 @@ def test_merge_with_wildcards():
         os.chdir(tmpdir)
 
         try:
-            test_cases = [
+            test_cases: List[Dict[str, Any]] = [
                 {
                     "name": "合并所有Python文件到XML",
                     "patterns": ["**/*.py"],
@@ -213,14 +212,20 @@ def test_merge_with_wildcards():
                 print(f"输出: {test_case['output']}")
 
                 try:
-                    output_path = os.path.join(tmpdir, test_case["output"])
+                    # 提取测试用例参数
+                    patterns: list[str] = test_case["patterns"]
+                    output: str = test_case["output"]
+                    header: str = test_case["header"]
+                    format_type: str = test_case["format"]
+
+                    output_path = os.path.join(tmpdir, output)
 
                     # 执行合并
                     mergefile.merge_files(
-                        input_patterns=test_case["patterns"],
+                        input_patterns=patterns,
                         output_file=output_path,
-                        header=test_case["header"],
-                        format_type=test_case["format"],
+                        header=header,
+                        format_type=format_type,
                     )
 
                     # 验证输出文件
@@ -236,14 +241,14 @@ def test_merge_with_wildcards():
                         content = f.read()
 
                         # 验证头部
-                        if test_case["header"]:
-                            if test_case["format"] == "xml":
-                                assert test_case["header"] in content
+                        if header:
+                            if format_type == "xml":
+                                assert header in content
                             else:  # markdown
-                                assert test_case["header"] in content
+                                assert header in content
 
                         # 验证格式
-                        if test_case["format"] == "xml":
+                        if format_type == "xml":
                             assert "<?xml" in content
                             assert "<file_documentation>" in content
                         else:  # markdown
@@ -261,7 +266,7 @@ def test_merge_with_wildcards():
             os.chdir(original_cwd)
 
 
-def test_edge_cases():
+def test_edge_cases() -> None:
     """测试边界情况"""
     print("\n" + "=" * 60)
     print("测试边界情况")
@@ -288,7 +293,7 @@ def test_edge_cases():
                 with open(full_path, "w", encoding="utf-8") as f:
                     f.write(content)
 
-            test_cases = [
+            test_cases: List[Dict[str, Any]] = [
                 {
                     "name": "测试不存在的模式",
                     "patterns": ["*.nonexistent"],
@@ -321,11 +326,13 @@ def test_edge_cases():
                 print(f"模式: {test_case['patterns']}")
 
                 try:
-                    expanded_files = mergefile.expand_file_patterns(
-                        test_case["patterns"]
-                    )
+                    # 提取测试用例参数
+                    patterns: list[str] = test_case["patterns"]
+                    should_fail: bool = test_case["should_fail"]
 
-                    if test_case["should_fail"]:
+                    expanded_files = mergefile.expand_file_patterns(patterns)
+
+                    if should_fail:
                         # 应该没有文件或只有警告
                         print(f"找到文件数: {len(expanded_files)}")
                         if len(expanded_files) == 0:
@@ -350,7 +357,7 @@ def test_edge_cases():
             os.chdir(original_cwd)
 
 
-def test_output_in_input():
+def test_output_in_input() -> None:
     """测试输出文件在输入文件中的情况"""
     print("\n" + "=" * 60)
     print("测试输出文件在输入文件中的情况")
@@ -389,7 +396,7 @@ def test_output_in_input():
             os.chdir(original_cwd)
 
 
-def main():
+def main() -> int:
     """主测试函数"""
     print("开始测试 mergefile 通配符功能")
     print("=" * 60)

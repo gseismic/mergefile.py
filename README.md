@@ -266,7 +266,7 @@ MergeFile has a comprehensive error handling mechanism:
 mergefile.py/
 ├── mergefile.py          # Main program
 ├── pyproject.toml        # Project configuration and dependencies
-├── setup.py             # Traditional installation script (compatibility)
+
 ├── README.md            # This document (English)
 ├── README_zh.md         # Chinese documentation
 ├── LICENSE              # MIT License

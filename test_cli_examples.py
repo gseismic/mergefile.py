@@ -8,7 +8,6 @@ import os
 import subprocess
 import sys
 import tempfile
-from pathlib import Path
 
 # 添加 mergefile 模块到路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -167,16 +166,16 @@ database:
 3. [API参考](#api参考)
 
 ## 安装
-\`\`\`bash
+```bash
 pip install -r requirements.txt
-\`\`\`
+```
 
 ## 使用
-\`\`\`python
+```python
 from src.models.user import User
 user = User("Alice", "alice@example.com")
 print(user.get_info())
-\`\`\`
+```
 """,
             "config/app.cfg": """[app]
 name = TestApp
@@ -237,7 +236,7 @@ LOG_LEVEL=INFO
         os.chdir(original_cwd)
 
 
-def run_cli_examples():
+def run_cli_examples() -> None:
     """运行命令行示例"""
     print("🚀 开始演示 mergefile 通配符功能")
     print("=" * 60)
@@ -329,7 +328,7 @@ def run_cli_examples():
                         f"python {os.path.join(original_cwd, 'mergefile.py')}",
                     )
 
-                    print(f"\n🔧 执行命令...")
+                    print("\n🔧 执行命令...")
                     result = subprocess.run(
                         cmd, shell=True, capture_output=True, text=True
                     )
@@ -347,7 +346,7 @@ def run_cli_examples():
                             # 显示文件前几行
                             with open(output_file, "r", encoding="utf-8") as f:
                                 lines = f.readlines()[:10]
-                            print(f"📖 文件预览（前10行）:")
+                            print("📖 文件预览（前10行）:")
                             for line in lines:
                                 print(f"   {line.rstrip()}")
                             if file_size > sum(len(line) for line in lines):
@@ -376,7 +375,7 @@ def run_cli_examples():
             os.chdir(original_cwd)
 
 
-def test_direct_api_calls():
+def test_direct_api_calls() -> None:
     """直接调用API测试"""
     print("\n🔧 直接API调用测试")
     print("=" * 60)
@@ -430,7 +429,7 @@ def test_direct_api_calls():
             os.chdir(original_cwd)
 
 
-def main():
+def main() -> int:
     """主函数"""
     print("🔬 mergefile 通配符功能演示")
     print("=" * 60)

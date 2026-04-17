@@ -6,10 +6,8 @@ mergefile - 合并多个文件到XML或Markdown格式，适合提供给大模型
 """
 
 import argparse
-import fnmatch
 import glob
 import os
-import sys
 from typing import List, Optional, TextIO
 from xml.sax.saxutils import escape
 
@@ -103,7 +101,7 @@ def merge_files(
         print(
             f"成功合并 {len(input_files)} 个文件到 {output_file} (格式: {format_type})"
         )
-        print(f"处理的文件列表:")
+        print("处理的文件列表:")
         for i, file_path in enumerate(input_files, 1):
             print(f"  {i:3d}. {file_path}")
     except Exception as e:
@@ -260,12 +258,8 @@ def _get_language_by_extension(ext: str) -> str:
         ".tsv": "csv",
         ".txt": "text",
         ".log": "text",
-        ".cfg": "ini",
         ".properties": "properties",
         ".gradle": "groovy",
-        ".kt": "kotlin",
-        ".swift": "swift",
-        ".rs": "rust",
         ".lua": "lua",
         ".pl": "perl",
         ".pm": "perl",

@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import mergefile
 
 
-def test_output_in_input():
+def test_output_in_input() -> None:
     """测试输出文件在输入文件中的情况"""
     print("=" * 60)
     print("测试 1: 输出文件在输入文件中")
@@ -30,8 +30,8 @@ def test_output_in_input():
             with open("test.py", "w", encoding="utf-8") as f:
                 f.write('print("Hello")')
 
-            print(f"创建测试文件: test.py")
-            print(f"尝试将输出文件设置为同一个文件...")
+            print("创建测试文件: test.py")
+            print("尝试将输出文件设置为同一个文件...")
 
             try:
                 mergefile.merge_files(
@@ -55,7 +55,7 @@ def test_output_in_input():
             os.chdir(original_cwd)
 
 
-def test_output_exists_no_force():
+def test_output_exists_no_force() -> None:
     """测试输出文件已存在但未使用强制覆盖"""
     print("\n" + "=" * 60)
     print("测试 2: 输出文件已存在且未使用强制覆盖")
@@ -74,9 +74,9 @@ def test_output_exists_no_force():
             with open("output.xml", "w", encoding="utf-8") as f:
                 f.write("Existing content")
 
-            print(f"创建输入文件: input.py")
-            print(f"创建已存在的输出文件: output.xml")
-            print(f"尝试合并文件（未使用强制覆盖）...")
+            print("创建输入文件: input.py")
+            print("创建已存在的输出文件: output.xml")
+            print("尝试合并文件（未使用强制覆盖）...")
 
             try:
                 mergefile.merge_files(
@@ -99,7 +99,7 @@ def test_output_exists_no_force():
             os.chdir(original_cwd)
 
 
-def test_output_exists_with_force():
+def test_output_exists_with_force() -> None:
     """测试输出文件已存在但使用强制覆盖"""
     print("\n" + "=" * 60)
     print("测试 3: 输出文件已存在且使用强制覆盖")
@@ -118,9 +118,9 @@ def test_output_exists_with_force():
             with open("output.xml", "w", encoding="utf-8") as f:
                 f.write("Existing content that should be overwritten")
 
-            print(f"创建输入文件: input.py")
-            print(f"创建已存在的输出文件: output.xml")
-            print(f"尝试合并文件（使用强制覆盖）...")
+            print("创建输入文件: input.py")
+            print("创建已存在的输出文件: output.xml")
+            print("尝试合并文件（使用强制覆盖）...")
 
             mergefile.merge_files(
                 input_patterns=["*.py"],
@@ -142,7 +142,7 @@ def test_output_exists_with_force():
             os.chdir(original_cwd)
 
 
-def test_normal_case():
+def test_normal_case() -> None:
     """测试正常情况（输出文件不存在且不在输入文件中）"""
     print("\n" + "=" * 60)
     print("测试 4: 正常情况（输出文件不存在且不在输入文件中）")
@@ -160,9 +160,9 @@ def test_normal_case():
             with open("input2.py", "w", encoding="utf-8") as f:
                 f.write('print("File 2")')
 
-            print(f"创建输入文件: input1.py, input2.py")
-            print(f"输出文件: output.xml（不存在）")
-            print(f"尝试合并文件...")
+            print("创建输入文件: input1.py, input2.py")
+            print("输出文件: output.xml（不存在）")
+            print("尝试合并文件...")
 
             mergefile.merge_files(
                 input_patterns=["*.py"],
@@ -186,7 +186,7 @@ def test_normal_case():
             os.chdir(original_cwd)
 
 
-def test_cli_force_option():
+def test_cli_force_option() -> None:
     """测试命令行强制覆盖选项"""
     print("\n" + "=" * 60)
     print("测试 5: 命令行强制覆盖选项")
@@ -205,11 +205,11 @@ def test_cli_force_option():
             with open("existing.xml", "w", encoding="utf-8") as f:
                 f.write("Old content")
 
-            print(f"创建测试文件: test.py")
-            print(f"创建已存在的输出文件: existing.xml")
+            print("创建测试文件: test.py")
+            print("创建已存在的输出文件: existing.xml")
 
             # 测试不带强制覆盖选项（应该失败）
-            print(f"\n测试不带强制覆盖选项...")
+            print("\n测试不带强制覆盖选项...")
             result = subprocess.run(
                 [
                     sys.executable,
@@ -230,7 +230,7 @@ def test_cli_force_option():
             print("✅ 不带强制覆盖选项时正确失败")
 
             # 测试带强制覆盖选项（应该成功）
-            print(f"\n测试带强制覆盖选项...")
+            print("\n测试带强制覆盖选项...")
             result = subprocess.run(
                 [
                     sys.executable,
@@ -256,7 +256,7 @@ def test_cli_force_option():
             os.chdir(original_cwd)
 
 
-def main():
+def main() -> int:
     """主测试函数 - 用于独立运行测试"""
     print("开始测试文件检查和强制覆盖功能")
     print("=" * 60)
