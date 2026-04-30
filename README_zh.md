@@ -4,6 +4,18 @@
 
 一个强大的文件合并工具，支持通配符模式，可以将多个文件合并为XML或Markdown格式，特别适合为大语言模型（LLM）准备输入文档。
 
+## ✨ 核心特性
+
+- 📍 **行号追踪**：自动在合并后的文件中标记每个文件的起止行号（如 `L100-L200`），方便大模型定位和快速跳转。
+- 🌍 **多语言支持**：支持 **英文**（默认）和 **中文**。
+  - **英文**：`mergefile --lang en ...` (**默认**)
+  - **中文**：`mergefile --lang zh ...`
+  - **一键配置**：`mergefile --lang zh --save-lang` (将中文设为 `~/.mergefile.json` 中的永久默认语言)
+- 🚀 **高级通配符支持**：完整支持 `**/*.py` 等递归模式，并能正确处理 shell 引号。
+- 🚫 **智能排除**：通过 `--exclude` 选项轻松排除特定文件或目录。
+- 📝 **双格式输出**：支持 Markdown（适合人类阅读）和 XML（适合机器处理）两种格式。
+- 🏷️ **自动语言检测**：自动识别 100+ 种文件类型并在 Markdown 中应用语法高亮。
+
 ## 🚀 快速开始
 
 ### 基本用法
@@ -50,6 +62,7 @@ mergefile **/*.py --exclude tests/**/*.py -o output.md
 - 🔍 **默认递归**：自动搜索子目录，可用 `--no-recursive` 禁用
 - 💬 **自定义头部**：使用 `--header "您的描述"` 添加上下文
 - 📊 **详细报告**：显示文件列表、计数和警告
+- 📍 **行号追踪**：自动在合并后的文件中标记每个文件的起止行号（如 `L100-L200`）
 - 🛡️ **错误恢复**：跳过问题文件，继续处理
 - 📦 **现代打包**：使用 `pyproject.toml`，无需传统的 `setup.py`
 
@@ -91,6 +104,8 @@ mergefile [选项] 模式... -o 输出文件
 | `--force` | `-f` | 否 | 覆盖已存在的输出文件 |
 | `--exclude` | | 否 | 排除模式（可多次使用） |
 | `--no-recursive` | | 否 | 禁用递归搜索 |
+| `--lang` | | 否 | 输出语言：`en`（默认）或 `zh` |
+| `--save-lang` | | 否 | 将当前语言保存为配置中的默认语言 |
 | `--help` | `-h` | 否 | 显示帮助 |
 
 ### ⚠️ 重要：通配符引号
@@ -252,15 +267,15 @@ mergefile \
 ## 文件列表
 共合并了 3 个文件:
 
-1. `src/main.py`
-2. `src/utils/helper.py`
-3. `config/settings.yaml`
+1. `src/main.py` L16-L22
+2. `src/utils/helper.py` L24-L30
+3. `config/settings.yaml` L32-L38
 
 ## 文件内容
 
 ---
 
-### main.py
+### main.py L16-L22
 文件路径: `src/main.py`
 
 ```python
@@ -289,13 +304,13 @@ def helper():
   <description>项目分析 - 生成于 2024-01-01</description>
   
   <file_list>
-    <item index="1" path="src/main.py" name="main.py" />
-    <item index="2" path="src/utils/helper.py" name="helper.py" />
-    <item index="3" path="config/settings.yaml" name="settings.yaml" />
+    <item index="1" path="src/main.py" name="main.py" lines="L9-L15" />
+    <item index="2" path="src/utils/helper.py" name="helper.py" lines="L16-L22" />
+    <item index="3" path="config/settings.yaml" name="settings.yaml" lines="L23-L29" />
   </file_list>
   
   <file_contents>
-    <file name="main.py" path="src/main.py">
+    <file name="main.py" path="src/main.py" lines="L9-L15">
       <![CDATA[
 def main():
     print("Hello, World!")
@@ -436,8 +451,12 @@ MIT 许可证 - 您可以自由使用、修改和分发此软件。
 
 ## 📈 版本历史
 
-- **v1.0.0**（初始版本）- 基本文件合并功能
-- **v1.1.0**（当前版本）- 添加通配符支持、安全保护、强制覆盖等高级功能
+- **v1.1.0** - 添加通配符支持、安全保护、强制覆盖等高级功能
+- **v1.2.0**（当前版本）- 自动在合并输出中追踪输入文件的起止行号
+- **v1.3.0** - 新增多语言支持（`zh`/`en`）及自动阅读提示
+- **v1.4.0** - 新增法语支持（`fr`）及语言设置自动持久化
+- **v1.5.0** - 新增西班牙语支持（`es`）
+- **v1.6.0**（当前版本）- 精简为中/英，默认为英文，新增 `--save-lang`
 
 使用 `mergefile --version` 查看当前版本。
 
@@ -497,5 +516,10 @@ MIT 许可证 - 您可以自由使用、修改和分发本软件。
 
 - **v1.0.0** (初始版本) - 基本文件合并功能
 - **v1.1.0** (当前版本) - 添加通配符支持、安全保护、强制覆盖等高级功能
+- **v1.2.0** (当前版本) - 自动在合并输出中追踪输入文件的起止行号
+- **v1.3.0** - 新增多语言支持（`zh`/`en`）及自动阅读提示
+- **v1.4.0** - 新增法语支持（`fr`）及语言设置自动持久化
+- **v1.5.0** - 新增西班牙语支持（`es`）
+- **v1.6.0** (当前版本) - 精简为中/英，默认为英文，新增 `--save-lang`
 
 使用 `mergefile --version` 查看当前版本。

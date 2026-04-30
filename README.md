@@ -4,6 +4,18 @@ A powerful file merging tool with wildcard support that can combine multiple fil
 
 [中文文档](README_zh.md) | [English Documentation](README.md)
 
+## ✨ Core Features
+
+- 📍 **Line Range Tracking**: Automatically tracks the starting and ending line numbers of each file in the merged output (e.g., `L100-L200`) for easier navigation and LLM referencing.
+- 🌍 **Multi-language Support**: Supports **English** (default) and **Chinese**.
+  - **English**: `mergefile --lang en ...` (**Default**)
+  - **Chinese**: `mergefile --lang zh ...`
+  - **One-time Config**: `mergefile --lang zh --save-lang` (Saves Chinese as your permanent default in `~/.mergefile.json`)
+- 🚀 **Advanced Wildcard Support**: Full support for recursive patterns like `**/*.py` with proper shell quoting.
+- 🚫 **Smart Exclusion**: Easily exclude files or directories using the `--exclude` option.
+- 📝 **Dual Format Output**: Choose between Markdown (best for human reading) or XML (best for machine processing).
+- 🏷️ **Auto Language Detection**: Automatically recognizes 100+ file types and applies syntax highlighting in Markdown.
+
 ## 🚀 Quick Start
 
 ### Basic Usage
@@ -50,6 +62,7 @@ mergefile **/*.py --exclude tests/**/*.py -o output.md
 - 🔍 **Recursive by Default**: Searches subdirectories automatically, disable with `--no-recursive`
 - 💬 **Custom Headers**: Add context with `--header "Your description"`
 - 📊 **Detailed Reporting**: Shows file list, counts, and warnings
+- 📍 **Line Range Tracking**: Automatically tracks the line numbers of each file in the merged output (e.g., `L100-L200`) for easier navigation
 - 🛡️ **Error Resilient**: Skips problematic files, continues processing
 - 📦 **Modern Packaging**: Uses `pyproject.toml`, no legacy `setup.py` required
 
@@ -91,6 +104,8 @@ mergefile [OPTIONS] PATTERNS... -o OUTPUT_FILE
 | `--force` | `-f` | No | Overwrite existing output file |
 | `--exclude` | | No | Exclude pattern (use multiple times) |
 | `--no-recursive` | | No | Disable recursive search |
+| `--lang` | | No | Output language: `en` (default) or `zh` |
+| `--save-lang` | | No | Save current language as default in config |
 | `--help` | `-h` | No | Show help |
 
 ### ⚠️ Critical: Quoting Wildcards
@@ -252,15 +267,15 @@ Project Analysis - Generated on 2024-01-01
 ## File List
 Merged 3 files:
 
-1. `src/main.py`
-2. `src/utils/helper.py`
-3. `config/settings.yaml`
+1. `src/main.py` L16-L22
+2. `src/utils/helper.py` L24-L30
+3. `config/settings.yaml` L32-L38
 
 ## File Contents
 
 ---
 
-### main.py
+### main.py L16-L22
 File path: `src/main.py`
 
 ```python
@@ -289,13 +304,13 @@ Structured format ideal for processing by other tools. Uses CDATA to avoid XML i
   <description>Project Analysis - Generated on 2024-01-01</description>
   
   <file_list>
-    <item index="1" path="src/main.py" name="main.py" />
-    <item index="2" path="src/utils/helper.py" name="helper.py" />
-    <item index="3" path="config/settings.yaml" name="settings.yaml" />
+    <item index="1" path="src/main.py" name="main.py" lines="L9-L15" />
+    <item index="2" path="src/utils/helper.py" name="helper.py" lines="L16-L22" />
+    <item index="3" path="config/settings.yaml" name="settings.yaml" lines="L23-L29" />
   </file_list>
   
   <file_contents>
-    <file name="main.py" path="src/main.py">
+    <file name="main.py" path="src/main.py" lines="L9-L15">
       <![CDATA[
 def main():
     print("Hello, World!")
@@ -440,7 +455,12 @@ Contributions are welcome! Feel free to submit Issues or Pull Requests.
 ## 📈 Version History
 
 - **v1.0.0** (Initial version) - Basic file merging functionality
-- **v1.1.0** (Current version) - Added wildcard support, safety protection, force overwrite, and other advanced features
+- **v1.1.0** - Added wildcard support, safety protection, force overwrite, and other advanced features
+- **v1.2.0** - Added automatic line range tracking for input files in merged output
+- **v1.3.0** - Added Multi-language support (`zh`/`en`) and automatic reading tips
+- **v1.4.0** - Added French support (`fr`) and automatic language persistence
+- **v1.5.0** - Added Spanish support (`es`)
+- **v1.6.0** (Current version) - Simplified to EN/ZH, EN as default, added `--save-lang`
 
 Use `mergefile --version` to view current version.
 
