@@ -9,8 +9,8 @@ import sys
 import tempfile
 from typing import Any, Dict, List
 
-# 添加 mergefile 模块到路径
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# 添加 mergefile 模块到路径 (在父目录)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import mergefile
 
@@ -385,7 +385,7 @@ def test_output_in_input() -> None:
                 )
                 print("✗ 测试失败：应该抛出ValueError")
             except ValueError as e:
-                if "output_file 不能和 input_files" in str(e):
+                if "output_file" in str(e) and "input_files" in str(e):
                     print("✓ 测试通过（正确抛出ValueError）")
                 else:
                     print(f"✗ 测试失败：错误的错误消息: {str(e)}")

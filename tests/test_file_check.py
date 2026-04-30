@@ -9,8 +9,8 @@ import subprocess
 import sys
 import tempfile
 
-# 添加 mergefile 模块到路径
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# 添加 mergefile 模块到路径 (在父目录)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import mergefile
 
@@ -221,6 +221,8 @@ def test_cli_force_option() -> None:
                     "existing.xml",
                     "--format",
                     "xml",
+                    "--lang",
+                    "en",
                 ],
                 capture_output=True,
                 text=True,
@@ -245,6 +247,8 @@ def test_cli_force_option() -> None:
                     "--format",
                     "xml",
                     "--force",
+                    "--lang",
+                    "en",
                 ],
                 capture_output=True,
                 text=True,

@@ -9,8 +9,8 @@ import subprocess
 import sys
 import tempfile
 
-# 添加 mergefile 模块到路径
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# 添加 mergefile 模块到路径 (在父目录)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import mergefile
 
@@ -283,32 +283,32 @@ def run_cli_examples() -> None:
             examples = [
                 {
                     "title": "示例 1: 合并所有Python文件到XML",
-                    "command": "python -m mergefile mergefile.py **/*.py -o all_code.xml --header '所有Python源代码' --format xml",
+                    "command": "python -m mergefile mergefile.py **/*.py -o all_code.xml --header '所有Python源代码' --format xml --lang en",
                     "description": "递归查找所有Python文件并合并为XML格式",
                 },
                 {
                     "title": "示例 2: 合并源代码目录到Markdown",
-                    "command": "python -m mergefile mergefile.py src/**/*.py -o src_docs.md --header '源代码文档' --format markdown",
+                    "command": "python -m mergefile mergefile.py src/**/*.py -o src_docs.md --header '源代码文档' --format markdown --lang en",
                     "description": "合并src目录下的所有Python文件为Markdown格式",
                 },
                 {
                     "title": "示例 3: 合并配置文件和文档",
-                    "command": "python -m mergefile mergefile.py *.md config/* data/*.json data/*.yaml -o config_docs.xml --header '配置和文档' --format xml",
+                    "command": "python -m mergefile mergefile.py *.md config/* data/*.json data/*.yaml -o config_docs.xml --header '配置和文档' --format xml --lang en",
                     "description": "合并多种类型的配置文件",
                 },
                 {
                     "title": "示例 4: 合并测试文件",
-                    "command": "python -m mergefile mergefile.py tests/*.py -o tests.xml --header '测试代码' --format xml",
+                    "command": "python -m mergefile mergefile.py tests/*.py -o tests.xml --header '测试代码' --format xml --lang en",
                     "description": "合并tests目录下的测试文件",
                 },
                 {
                     "title": "示例 5: 使用通配符过滤特定文件",
-                    "command": "python -m mergefile mergefile.py **/*.py --exclude tests/ -o source_only.md --header '源代码（排除测试）' --format markdown",
+                    "command": "python -m mergefile mergefile.py **/*.py --exclude tests/ -o source_only.md --header '源代码（排除测试）' --format markdown --lang en",
                     "description": "合并所有Python文件，但排除tests目录",
                 },
                 {
                     "title": "示例 6: 合并点文件（配置文件）",
-                    "command": "python -m mergefile mergefile.py .* -o dotfiles.xml --header '配置文件' --format xml",
+                    "command": "python -m mergefile mergefile.py .* -o dotfiles.xml --header '配置文件' --format xml --lang en",
                     "description": "合并所有以点开头的配置文件",
                 },
             ]
