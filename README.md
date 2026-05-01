@@ -179,6 +179,7 @@ mergefile '**/*.py' --format xml -o code_structure.xml
 
 # Disable recursion
 mergefile '*.py' --no-recursive -o current_dir_only.md
+```
 
 #### 🏗️ Large Project Splitting
 ```bash
@@ -187,9 +188,8 @@ mergefile 'my_huge_repo/**/*' -o project.md --split
 
 # This will generate:
 # - project_1.md, project_2.md... (content chunks)
-# - project_index.md (Human-readable table of contents)
-# - project_index.json (Machine-readable mapping)
-```
+# - project_index.md (Human-readable index with Reading Tips and Tables)
+# - project_index.json (Machine-readable mapping with line counts)
 ```
 
 ### 🔒 Safety Features

@@ -187,8 +187,8 @@ mergefile 'my_huge_repo/**/*' -o project.md --split
 
 # 这将生成：
 # - project_1.md, project_2.md... (内容分块)
-# - project_index.md (人类可读的索引目录)
-# - project_index.json (机器可读的文件映射)
+# - project_index.md (包含“阅读建议”和“分块统计表”的人类可读索引)
+# - project_index.json (包含行数统计的机器可读映射)
 ```
 ```
 
