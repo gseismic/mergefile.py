@@ -14,6 +14,8 @@
 - 🚀 **高级通配符支持**：完整支持 `**/*.py` 等递归模式，并能正确处理 shell 引号。
 - 🚫 **智能排除**：通过 `--exclude` 选项轻松排除特定文件或目录。
 - 📝 **双格式输出**：支持 Markdown（适合人类阅读）和 XML（适合机器处理）两种格式。
+- 🏗️ **超大型项目支持**：自动将海量文件拆分为多个合并分块（默认上限 9 个），确保不超出大模型的上下文限制。
+- 🗂️ **自动化索引**：自动生成 **Markdown 和 JSON 格式的文件索引**，包含精确的行号映射，方便快速定位和导航。
 - 🏷️ **自动语言检测**：自动识别 100+ 种文件类型并在 Markdown 中应用语法高亮。
 
 ## 🚀 快速开始
@@ -40,6 +42,9 @@ mergefile '**/*' --exclude 'node_modules/' --exclude '*.tmp' -o project_files.xm
 
 # 强制覆盖已存在的输出文件
 mergefile '*.py' -o output.md --force
+
+# 大型项目：自动拆分为多个文件并生成索引
+mergefile 'src/**/*' -o big_project.md --split
 ```
 
 ### 重要提示：关于通配符
@@ -106,6 +111,8 @@ mergefile [选项] 模式... -o 输出文件
 | `--no-recursive` | | 否 | 禁用递归搜索 |
 | `--lang` | | 否 | 输出语言：`en`（默认）或 `zh` |
 | `--save-lang` | | 否 | 将当前语言保存为配置中的默认语言 |
+| `--split` | | 否 | 开启大型项目分文件合并模式 |
+| `--max-files` | | 否 | 分文件模式下的最大文件数（默认：9） |
 | `--help` | `-h` | 否 | 显示帮助 |
 
 ### ⚠️ 重要：通配符引号
@@ -172,6 +179,17 @@ mergefile '**/*.py' --format xml -o code_structure.xml
 
 # 禁用递归
 mergefile '*.py' --no-recursive -o current_dir_only.md
+
+#### 🏗️ 大型项目分拆
+```bash
+# 按子目录自动分组并拆分为最多 9 个文件
+mergefile 'my_huge_repo/**/*' -o project.md --split
+
+# 这将生成：
+# - project_1.md, project_2.md... (内容分块)
+# - project_index.md (人类可读的索引目录)
+# - project_index.json (机器可读的文件映射)
+```
 ```
 
 ### 🔒 安全特性
@@ -521,5 +539,6 @@ MIT 许可证 - 您可以自由使用、修改和分发本软件。
 - **v1.4.0** - 新增法语支持（`fr`）及语言设置自动持久化
 - **v1.5.0** - 新增西班牙语支持（`es`）
 - **v1.6.0** (当前版本) - 精简为中/英，默认为英文，新增 `--save-lang`
+- **v1.7.0** (当前版本) - 新增大型项目支持：支持 `--split`、`--max-files` 以及自动生成 MD/JSON 索引。
 
 使用 `mergefile --version` 查看当前版本。

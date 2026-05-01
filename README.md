@@ -14,6 +14,8 @@ A powerful file merging tool with wildcard support that can combine multiple fil
 - 🚀 **Advanced Wildcard Support**: Full support for recursive patterns like `**/*.py` with proper shell quoting.
 - 🚫 **Smart Exclusion**: Easily exclude files or directories using the `--exclude` option.
 - 📝 **Dual Format Output**: Choose between Markdown (best for human reading) or XML (best for machine processing).
+- 🏗️ **Large Project Support**: Split massive projects into multiple files (max 9) to stay within LLM context limits.
+- 🗂️ **Automated Indexing**: Generates both **Markdown and JSON index files** with line-range mappings for seamless navigation.
 - 🏷️ **Auto Language Detection**: Automatically recognizes 100+ file types and applies syntax highlighting in Markdown.
 
 ## 🚀 Quick Start
@@ -40,6 +42,9 @@ mergefile '**/*' --exclude 'node_modules/' --exclude '*.tmp' -o project_files.xm
 
 # Force overwrite existing output
 mergefile '*.py' -o output.md --force
+
+# Large Project: Split into multiple files with an index
+mergefile 'src/**/*' -o big_project.md --split
 ```
 
 ### Important Note on Wildcards
@@ -106,6 +111,8 @@ mergefile [OPTIONS] PATTERNS... -o OUTPUT_FILE
 | `--no-recursive` | | No | Disable recursive search |
 | `--lang` | | No | Output language: `en` (default) or `zh` |
 | `--save-lang` | | No | Save current language as default in config |
+| `--split` | | No | Enable multi-file splitting for large projects |
+| `--max-files` | | No | Max number of output files (default: 9) |
 | `--help` | `-h` | No | Show help |
 
 ### ⚠️ Critical: Quoting Wildcards
@@ -172,6 +179,17 @@ mergefile '**/*.py' --format xml -o code_structure.xml
 
 # Disable recursion
 mergefile '*.py' --no-recursive -o current_dir_only.md
+
+#### 🏗️ Large Project Splitting
+```bash
+# Automatically group by subfolders and split into max 9 files
+mergefile 'my_huge_repo/**/*' -o project.md --split
+
+# This will generate:
+# - project_1.md, project_2.md... (content chunks)
+# - project_index.md (Human-readable table of contents)
+# - project_index.json (Machine-readable mapping)
+```
 ```
 
 ### 🔒 Safety Features
@@ -460,7 +478,8 @@ Contributions are welcome! Feel free to submit Issues or Pull Requests.
 - **v1.3.0** - Added Multi-language support (`zh`/`en`) and automatic reading tips
 - **v1.4.0** - Added French support (`fr`) and automatic language persistence
 - **v1.5.0** - Added Spanish support (`es`)
-- **v1.6.0** (Current version) - Simplified to EN/ZH, EN as default, added `--save-lang`
+- **v1.6.0** - Simplified to EN/ZH, EN as default, added `--save-lang`
+- **v1.7.0** (Current version) - Added Large Project support with `--split`, `--max-files`, and Index generation (MD/JSON).
 
 Use `mergefile --version` to view current version.
 

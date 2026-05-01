@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import List, Optional, TextIO
 from xml.sax.saxutils import escape
 
-__version__ = "1.6.0"
+__version__ = "1.7.0"
 
 CONFIG_FILE = Path.home() / ".mergefile.json"
 
@@ -53,6 +53,24 @@ MESSAGES = {
         "error_read": "读取错误: {}",
         "success": "成功合并了 {} 个文件到 {} (格式: {})",
         "processed_list": "已处理文件列表:",
+        "split_success": "分文件合并完成，共生成 {} 个文件。",
+        "index_generated": "索引文件已生成: {}",
+        "index_title": "合并项目索引",
+        "reading_tips": "阅读建议",
+        "tips_content": [
+            "1. 由于项目规模较大，已将内容拆分为多个合并文件。",
+            "2. 请使用此索引在各合并分块中查找特定原始文件。",
+            "3. 每个条目都提供了文件名、起始行号和结束行号，方便定位。",
+            "4. 您可以根据行号快速跳转到目标代码段。"
+        ],
+        "chunk_summary": "分块统计",
+        "chunk_file": "合并文件名",
+        "file_count": "包含文件数",
+        "line_count": "总行数",
+        "file_list": "文件列表",
+        "original_path": "原始路径",
+        "start_line": "起始行",
+        "end_line": "结束行",
     },
     "en": {
         "tip": "Tip: You can read according to the marked line numbers.",
@@ -67,6 +85,24 @@ MESSAGES = {
         "error_read": "Read error: {}",
         "success": "Successfully merged {} files to {} (format: {})",
         "processed_list": "Processed file list:",
+        "split_success": "Split merge completed, generated {} files.",
+        "index_generated": "Index file generated: {}",
+        "index_title": "Merged Project Index",
+        "reading_tips": "Reading Tips",
+        "tips_content": [
+            "1. This project has been merged into multiple files due to its size.",
+            "2. Use this index to locate specific files across the merged chunks.",
+            "3. Each entry provides the filename, start line, and end line for navigation.",
+            "4. You can use tools like `sed` or editor search to jump to specific lines."
+        ],
+        "chunk_summary": "Chunk Summary",
+        "chunk_file": "Chunk File",
+        "file_count": "File Count",
+        "line_count": "Line Count",
+        "file_list": "File List",
+        "original_path": "Original Path",
+        "start_line": "Start Line",
+        "end_line": "End Line",
     },
 }
 
@@ -131,6 +167,8 @@ def merge_files(
     force: bool = False,
     exclude_patterns: Optional[List[str]] = None,
     language: str = "zh",
+    split: bool = False,
+    max_files: int = 9,
 ) -> None:
     """
     将多个文件合并到一个输出文件中，支持通配符模式
@@ -144,6 +182,8 @@ def merge_files(
         force: 是否强制覆盖已存在的输出文件
         exclude_patterns: 排除模式列表（支持通配符，如 --exclude tests/ --exclude *.tmp）
         language: 输出语言 ('zh' 或 'en')
+        split: 是否开启分文件合并模式
+        max_files: 分文件合并模式下的最大文件数
 
     Raises:
         ValueError: If output file is in input files list, or output file exists and force is not used
@@ -187,29 +227,210 @@ def merge_files(
         )
 
     try:
-        # 第一步：计算各文件在输出文件中的行号范围
-        ranges = _calculate_ranges(input_files, header, format_type, language)
+        if split:
+            _merge_files_split(
+                input_files,
+                output_file,
+                header,
+                format_type,
+                force,
+                language,
+                max_files,
+            )
+        else:
+            # 第一步：计算各文件在输出文件中的行号范围
+            ranges, _ = _calculate_ranges(input_files, header, format_type, language)
 
-        with open(output_file, "w", encoding="utf-8") as out_f:
-            if format_type == "xml":
-                _write_xml_format(out_f, input_files, header, ranges, language)
-            else:  # markdown
-                _write_markdown_format(out_f, input_files, header, ranges, language)
+            with open(output_file, "w", encoding="utf-8") as out_f:
+                if format_type == "xml":
+                    _write_xml_format(out_f, input_files, header, ranges, language)
+                else:  # markdown
+                    _write_markdown_format(out_f, input_files, header, ranges, language)
 
-        msg = MESSAGES.get(language, MESSAGES["zh"])
-        print(msg["success"].format(len(input_files), output_file, format_type))
-        print(msg["processed_list"])
-        for i, file_path in enumerate(input_files, 1):
-            print(f"  {i:3d}. {file_path}")
+            msg = MESSAGES.get(language, MESSAGES["zh"])
+            print(msg["success"].format(len(input_files), output_file, format_type))
+            print(msg["processed_list"])
+            for i, file_path in enumerate(input_files, 1):
+                print(f"  {i:3d}. {file_path}")
     except Exception as e:
         print(f"Error writing output file: {str(e)}")
         raise
 
 
+def _merge_files_split(
+    input_files: List[str],
+    output_file: str,
+    header: Optional[str],
+    format_type: str,
+    force: bool,
+    language: str,
+    max_files: int,
+) -> None:
+    """处理分文件合并逻辑"""
+    msg = MESSAGES.get(language, MESSAGES["zh"])
+
+    # 1. 分组逻辑：按一级子目录分组
+    if not input_files:
+        return
+
+    # 寻找共同前缀，以便更智能地分组
+    if len(input_files) > 1:
+        common_prefix = os.path.commonpath([os.path.dirname(f) for f in input_files])
+    else:
+        common_prefix = os.path.dirname(input_files[0])
+
+    groups = {}  # group_name -> list of files
+    for f in input_files:
+        # 获取相对于共同前缀的路径
+        try:
+            rel_path = os.path.relpath(f, common_prefix)
+            parts = Path(rel_path).parts
+            if len(parts) > 1:
+                group_name = parts[0]
+            else:
+                # 如果就在共同前缀目录下，或者是文件本身
+                # 检查它是否是 common_prefix 下的文件
+                if os.path.dirname(f) == common_prefix:
+                    group_name = "."
+                else:
+                    group_name = os.path.basename(common_prefix) or "."
+        except ValueError:
+            # 如果不在同一个驱动器（Windows）等情况，回退到原始逻辑
+            parts = Path(f).parts
+            group_name = parts[0] if len(parts) > 1 else "."
+
+        if group_name not in groups:
+            groups[group_name] = []
+        groups[group_name].append(f)
+
+    # 如果分组超过 max_files，需要合并小分组
+    sorted_groups = sorted(groups.items(), key=lambda x: len(x[1]), reverse=True)
+    
+    final_chunks = []
+    if len(sorted_groups) <= max_files:
+        final_chunks = [files for name, files in sorted_groups]
+    else:
+        # 简单合并：前 max_files-1 个大组独立，剩余的组合并到一起
+        final_chunks = [files for name, files in sorted_groups[:max_files-1]]
+        remaining_files = []
+        for name, files in sorted_groups[max_files-1:]:
+            remaining_files.extend(files)
+        final_chunks.append(remaining_files)
+
+    # 2. 执行合并并记录索引
+    index_data = {
+        "metadata": {
+            "total_files": len(input_files),
+            "total_chunks": len(final_chunks),
+            "total_lines": 0,
+            "format": format_type,
+            "created_at": None,  # 可选添加时间戳
+        },
+        "chunks": [],
+        "files": [],
+    }
+
+    base_name, ext = os.path.splitext(output_file)
+    total_all_lines = 0
+    
+    for i, chunk_files in enumerate(final_chunks, 1):
+        chunk_output = f"{base_name}_{i}{ext}"
+        
+        # 检查覆盖
+        if os.path.exists(chunk_output) and not force:
+            raise ValueError(f"Output file already exists: {chunk_output}. Use -f to overwrite.")
+
+        # 计算该 chunk 的范围
+        ranges, chunk_total_lines = _calculate_ranges(chunk_files, header, format_type, language)
+        total_all_lines += chunk_total_lines
+
+        with open(chunk_output, "w", encoding="utf-8") as out_f:
+            if format_type == "xml":
+                _write_xml_format(out_f, chunk_files, header, ranges, language)
+            else:
+                _write_markdown_format(out_f, chunk_files, header, ranges, language)
+        
+        # 记录 chunk 信息
+        index_data["chunks"].append({
+            "chunk_file": os.path.basename(chunk_output),
+            "file_count": len(chunk_files),
+            "line_count": chunk_total_lines
+        })
+
+        # 记录到索引
+        for f_path in chunk_files:
+            r_start, r_end = ranges.get(f_path, (0, 0))
+            index_data["files"].append({
+                "original_path": f_path,
+                "merged_file": os.path.basename(chunk_output),
+                "start_line": r_start,
+                "end_line": r_end,
+                "line_count": r_end - r_start + 1
+            })
+        
+        print(msg["success"].format(len(chunk_files), chunk_output, format_type))
+
+    index_data["metadata"]["total_lines"] = total_all_lines
+
+    # 3. 写入索引文件 (JSON)
+    json_index = f"{base_name}_index.json"
+    with open(json_index, "w", encoding="utf-8") as f:
+        json.dump(index_data, f, indent=4, ensure_ascii=False)
+    
+    # 4. 写入索引文件 (Markdown)
+    md_index = f"{base_name}_index.md"
+    _write_markdown_index(md_index, index_data, language)
+
+    print(msg["split_success"].format(len(final_chunks)))
+    print(msg["index_generated"].format(md_index))
+
+
+def _write_markdown_index(file_path: str, data: dict, language: str) -> None:
+    """生成 Markdown 格式的索引文件"""
+    msg = MESSAGES.get(language, MESSAGES["zh"])
+    meta = data["metadata"]
+    
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(f"# {msg['index_title']}\n\n")
+        
+        # 阅读建议
+        f.write(f"## {msg['reading_tips']}\n")
+        for tip in msg["tips_content"]:
+            f.write(f"- {tip}\n")
+        f.write("\n")
+        
+        # 分块统计
+        f.write(f"## {msg['chunk_summary']}\n\n")
+        f.write(f"| {msg['chunk_file']} | {msg['file_count']} | {msg['line_count']} |\n")
+        f.write(f"| --- | --- | --- |\n")
+        for chunk in data["chunks"]:
+            f.write(f"| {chunk['chunk_file']} | {chunk['file_count']} | {chunk['line_count']} |\n")
+        f.write("\n")
+        
+        # 文件列表 (按分块分组)
+        f.write(f"## {msg['file_list']}\n\n")
+        
+        # 为了方便展示，我们将文件按分块重新组织
+        files_by_chunk = {}
+        for file_entry in data["files"]:
+            chunk_name = file_entry["merged_file"]
+            if chunk_name not in files_by_chunk:
+                files_by_chunk[chunk_name] = []
+            files_by_chunk[chunk_name].append(file_entry)
+            
+        for chunk_name in sorted(files_by_chunk.keys()):
+            f.write(f"### {chunk_name}\n\n")
+            f.write(f"| {msg['original_path']} | {msg['start_line']} | {msg['end_line']} | {msg['line_count']} |\n")
+            f.write(f"| --- | --- | --- | --- |\n")
+            for entry in files_by_chunk[chunk_name]:
+                f.write(f"| `{entry['original_path']}` | {entry['start_line']} | {entry['end_line']} | {entry['line_count']} |\n")
+            f.write("\n")
+
+
 def _calculate_ranges(
     input_files: List[str], header: Optional[str], format_type: str, language: str
-) -> dict:
-    """计算每个文件在输出文件中的起止行号"""
+) -> tuple:
+    """计算每个文件在输出文件中的起止行号和总行数"""
     # 进行模拟写入以计算准确的行号范围
     # 注意：模拟过程必须与实际写入过程（_write_*_format）在行数上完全保持一致
     return _do_calculate_ranges(input_files, header, format_type, language)
@@ -293,7 +514,7 @@ def _do_calculate_ranges(input_files, header, format_type, language):
         counter.write("  </file_contents>\n")
         counter.write("</file_documentation>")
 
-    return ranges
+    return ranges, counter.line
 
 
 def _write_xml_format(
@@ -568,6 +789,17 @@ File Pattern Examples:
         action="store_true",
         help="Save the current language choice as the default in ~/.mergefile.json",
     )
+    parser.add_argument(
+        "--split",
+        action="store_true",
+        help="Split output into multiple files based on subdirectories (max 9 files)",
+    )
+    parser.add_argument(
+        "--max-files",
+        type=int,
+        default=9,
+        help="Maximum number of output files when using --split (default: 9)",
+    )
     args = parser.parse_args()
 
     if len(args.patterns) < 1:
@@ -605,6 +837,8 @@ File Pattern Examples:
         args.force,
         exclude_patterns=args.exclude,
         language=language,
+        split=args.split,
+        max_files=args.max_files,
     )
 
 
