@@ -162,6 +162,7 @@ def test_wildcard_patterns() -> None:
                     import traceback
 
                     traceback.print_exc()
+                    raise
         finally:
             # 恢复原始工作目录
             os.chdir(original_cwd)
@@ -261,6 +262,7 @@ def test_merge_with_wildcards() -> None:
                     import traceback
 
                     traceback.print_exc()
+                    raise
         finally:
             # 恢复原始工作目录
             os.chdir(original_cwd)
@@ -335,23 +337,16 @@ def test_edge_cases() -> None:
                     if should_fail:
                         # 应该没有文件或只有警告
                         print(f"找到文件数: {len(expanded_files)}")
-                        if len(expanded_files) == 0:
-                            print("✓ 测试通过（如预期没有找到文件）")
-                        else:
-                            print("⚠ 找到了一些文件（可能不是预期的）")
+                        assert len(expanded_files) == 0, "不应找到匹配文件"
+                        print("✓ 测试通过（如预期没有找到文件）")
                     else:
                         # 应该找到文件
                         assert len(expanded_files) > 0, "应该找到文件但没找到"
                         print(f"✓ 测试通过，找到 {len(expanded_files)} 个文件")
 
                 except Exception as e:
-                    if test_case["should_fail"]:
-                        print(f"✓ 测试通过（如预期失败: {str(e)}）")
-                    else:
-                        print(f"✗ 测试失败: {str(e)}")
-                        import traceback
-
-                        traceback.print_exc()
+                    print(f"✗ 测试失败: {str(e)}")
+                    raise
         finally:
             # 恢复原始工作目录
             os.chdir(original_cwd)
@@ -383,14 +378,11 @@ def test_output_in_input() -> None:
                     header="测试",
                     format_type="xml",
                 )
-                print("✗ 测试失败：应该抛出ValueError")
             except ValueError as e:
-                if "output_file" in str(e) and "input_files" in str(e):
-                    print("✓ 测试通过（正确抛出ValueError）")
-                else:
-                    print(f"✗ 测试失败：错误的错误消息: {str(e)}")
-            except Exception as e:
-                print(f"✗ 测试失败：抛出非ValueError异常: {type(e).__name__}: {str(e)}")
+                assert "output_file" in str(e) and "input_files" in str(e)
+                print("✓ 测试通过（正确抛出ValueError）")
+            else:
+                raise AssertionError("应该抛出 ValueError")
         finally:
             # 恢复原始工作目录
             os.chdir(original_cwd)

@@ -14,7 +14,7 @@ A powerful file merging tool with wildcard support that can combine multiple fil
 - 🚀 **Advanced Wildcard Support**: Full support for recursive patterns like `**/*.py` with proper shell quoting.
 - 🚫 **Smart Exclusion**: Easily exclude files or directories using the `--exclude` option.
 - 📝 **Dual Format Output**: Choose between Markdown (best for human reading) or XML (best for machine processing).
-- 🏗️ **Large Project Support**: Split massive projects into multiple files (max 9) to stay within LLM context limits.
+- 🏗️ **Large Project Support**: Distribute project files across up to 9 chunks by default, using file sizes to balance them.
 - 🗂️ **Automated Indexing**: Generates both **Markdown and JSON index files** with line-range mappings for seamless navigation.
 - 🏷️ **Auto Language Detection**: Automatically recognizes 100+ file types and applies syntax highlighting in Markdown.
 
@@ -103,7 +103,7 @@ mergefile [OPTIONS] PATTERNS... -o OUTPUT_FILE
 ### Essential Options
 | Option | Short | Required | Description |
 |--------|-------|----------|-------------|
-| `--output` | `-o` | **Yes** | Output file path |
+| `--output` | `-o` | For merging | Output file path; not needed when only saving the language |
 | `--format` | | No | `xml` or `markdown` (default: `markdown`) |
 | `--header` | | No | Custom header text |
 | `--force` | `-f` | No | Overwrite existing output file |
@@ -112,7 +112,7 @@ mergefile [OPTIONS] PATTERNS... -o OUTPUT_FILE
 | `--lang` | | No | Output language: `en` (default) or `zh` |
 | `--save-lang` | | No | Save current language as default in config |
 | `--split` | | No | Enable multi-file splitting for large projects |
-| `--max-files` | | No | Max number of output files (default: 9) |
+| `--max-files` | | No | Positive maximum number of output chunks (default: 9) |
 | `--help` | `-h` | No | Show help |
 
 ### ⚠️ Critical: Quoting Wildcards
@@ -183,7 +183,7 @@ mergefile '*.py' --no-recursive -o current_dir_only.md
 
 #### 🏗️ Large Project Splitting
 ```bash
-# Automatically group by subfolders and split into max 9 files
+# Group nearby files and balance their sizes across up to 9 chunks
 mergefile 'my_huge_repo/**/*' -o project.md --split
 
 # This will generate:
@@ -191,6 +191,9 @@ mergefile 'my_huge_repo/**/*' -o project.md --split
 # - project_index.md (Human-readable index with Reading Tips and Tables)
 # - project_index.json (Machine-readable mapping with line counts)
 ```
+
+Chunks are balanced using source file sizes, but each source file remains intact.
+A large individual file and formatting overhead can still exceed an LLM context limit.
 
 ### 🔒 Safety Features
 
@@ -211,6 +214,9 @@ mergefile '*.py' -o existing.md --force
 mergefile '*.py' -o new_output.md
 # Success: New file created
 ```
+
+Split mode checks every chunk and both indexes before writing. Existing outputs
+require `--force`, and no output may refer to an input file, even through a link.
 
 ### 🏗️ Real-World Scenarios
 
@@ -374,6 +380,7 @@ MergeFile has a comprehensive error handling mechanism:
 - **File not found**: Shows warning, skips the file, continues processing other files
 - **Permission denied**: Shows error, skips the file
 - **Encoding error**: Shows error, marks encoding error in output file
+- **Invalid XML characters**: Marks the file as an error in XML output
 
 ### Safety Protection
 - **Output file in input**: Immediately stops and shows error, preventing data loss

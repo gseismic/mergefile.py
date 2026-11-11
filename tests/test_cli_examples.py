@@ -352,13 +352,13 @@ def run_cli_examples() -> None:
                             if file_size > sum(len(line) for line in lines):
                                 print("   ...")
                         else:
-                            print("❌ 输出文件未创建")
+                            raise AssertionError(f"输出文件未创建: {output_file}")
                     else:
-                        print("❌ 执行失败")
-                        print(f"错误输出:\n{result.stderr}")
+                        raise AssertionError(f"执行失败:\n{result.stderr}")
 
                 except Exception as e:
                     print(f"❌ 执行出错: {str(e)}")
+                    raise
 
             print(f"\n{'=' * 60}")
             print("🎉 所有示例演示完成！")
@@ -390,6 +390,7 @@ def test_direct_api_calls() -> None:
             print("\n📋 测试1: 扩展通配符模式")
             patterns = ["src/**/*.py", "tests/*.py"]
             expanded = mergefile.expand_file_patterns(patterns)
+            assert expanded, "没有找到预期的源文件"
             print(f"模式: {patterns}")
             print(f"找到 {len(expanded)} 个文件:")
             for file in expanded[:5]:
@@ -407,9 +408,9 @@ def test_direct_api_calls() -> None:
                 format_type="xml",
             )
 
-            if os.path.exists(output_file):
-                print(f"✅ 成功创建: {output_file}")
-                print(f"📏 文件大小: {os.path.getsize(output_file)} 字节")
+            assert os.path.exists(output_file), "没有创建合并文件"
+            print(f"✅ 成功创建: {output_file}")
+            print(f"📏 文件大小: {os.path.getsize(output_file)} 字节")
 
             # 测试3: 测试边界情况
             print("\n📋 测试3: 测试边界情况")
@@ -421,9 +422,11 @@ def test_direct_api_calls() -> None:
                     header="测试",
                     format_type="xml",
                 )
-                print("❌ 应该抛出ValueError但未抛出")
             except ValueError as e:
+                assert "Output file already exists" in str(e)
                 print(f"✅ 正确抛出ValueError: {str(e)}")
+            else:
+                raise AssertionError("应该抛出 ValueError")
 
         finally:
             os.chdir(original_cwd)
